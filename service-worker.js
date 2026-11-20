@@ -1,5 +1,5 @@
 // 大阪地鐵隨身指南：離線快取
-const CACHE = "osaka-metro-v1";
+const CACHE = "osaka-metro-v2";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./apple-touch-icon.png"];
 
 self.addEventListener("install", e => {
