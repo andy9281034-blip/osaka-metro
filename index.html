@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f2a44">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="大阪地鐵">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<title>大阪地鐵隨身指南</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Noto+Sans+TC:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Station-signage look: white panels, line-colour roundels, Midosuji red as the one accent. Phone-first, bottom tab bar. */
+  --paper: #f3f2ef;
+  --surface: #ffffff;
+  --ink: #1b1c1f;
+  --muted: #62656c;
+  --rule: #dcdbd6;
+  --accent: #e5171f;
+  --accent-soft: #fde8e8;
+  --sign: #1f2a44;
+  --sign-ink: #ffffff;
+  --display: "Zen Kaku Gothic New", "Noto Sans TC", "Hiragino Sans", sans-serif;
+  --body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  --num: "Barlow Condensed", "Arial Narrow", sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #131416; --surface: #1d1f23; --ink: #eceae6; --muted: #a2a5ab; --rule: #33363c;
+    --accent: #ff4b50; --accent-soft: #3a1d1f; --sign: #2c3a5c; --sign-ink: #ffffff; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #131416; --surface: #1d1f23; --ink: #eceae6; --muted: #a2a5ab; --rule: #33363c;
+  --accent: #ff4b50; --accent-soft: #3a1d1f; --sign: #2c3a5c; --sign-ink: #ffffff; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: var(--paper); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.55; -webkit-text-size-adjust: 100%; }
+.app { overflow-x: hidden; max-width: 560px; margin: 0 auto; min-height: 100%; padding: 0 16px 96px; }
+header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: max(18px, calc(env(safe-area-inset-top) + 8px)) 0 12px; }
+header h1 { font-family: var(--display); font-weight: 900; font-size: 22px; margin: 0; letter-spacing: .02em; text-wrap: balance; }
+.home { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+.roundel { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; border: 3.5px solid var(--c, var(--accent)); background: var(--surface); color: var(--ink); font-family: var(--num); font-weight: 700; line-height: .9; flex: 0 0 auto; }
+.roundel b { font-size: 11px; color: var(--c, var(--accent)); }
+.roundel span { font-size: 14px; }
+.roundel.sm { width: 28px; height: 28px; border-width: 3px; }
+.roundel.sm b { font-size: 9.5px; } .roundel.sm span { font-size: 12px; }
+.tag { display: inline-flex; align-items: center; justify-content: center; min-width: 34px; height: 24px; padding: 0 7px; border-radius: 5px; background: var(--c); color: #fff; font-size: 12px; font-weight: 700; white-space: nowrap; }
+section[data-view] { display: none; }
+section[data-view].on { display: block; }
+h2 { font-family: var(--display); font-size: 17px; margin: 18px 0 10px; text-wrap: balance; }
+.lead { color: var(--muted); font-size: 13.5px; margin: 0 0 12px; }
+
+/* day chips */
+.days { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 10px; scrollbar-width: none; }
+.days::-webkit-scrollbar { display: none; }
+.day { flex: 0 0 auto; border: 1.5px solid var(--rule); background: var(--surface); color: var(--ink); border-radius: 12px; padding: 7px 12px; font: inherit; font-size: 13px; text-align: left; cursor: pointer; }
+.day b { display: block; font-family: var(--num); font-size: 18px; line-height: 1.1; }
+.day[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.day:focus-visible, .tab:focus-visible, .st:focus-visible, select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.dayhead { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin: 6px 0 10px; }
+.dayhead h2 { margin: 0; }
+.dayhead .go { font-size: 13px; color: var(--muted); white-space: nowrap; }
+
+/* leg cards */
+.legs { display: grid; gap: 10px; }
+.leg { background: var(--surface); border-radius: 14px; padding: 12px 14px; border-left: 6px solid var(--c, var(--rule)); display: grid; gap: 8px; }
+.leg.walk { background: transparent; border: 1.5px dashed var(--rule); border-left-width: 1.5px; padding: 9px 14px; }
+.leg-top { display: flex; align-items: center; gap: 10px; }
+.route { font-family: var(--display); font-weight: 700; font-size: 17px; line-height: 1.3; }
+.route .arr { color: var(--muted); margin: 0 4px; font-weight: 400; }
+.signbox { background: var(--sign); color: var(--sign-ink); border-radius: 8px; padding: 7px 10px; font-family: var(--display); font-weight: 700; font-size: 15px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.signbox small { font-family: var(--body); font-weight: 400; font-size: 11.5px; opacity: .75; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-size: 12.5px; background: var(--paper); border: 1px solid var(--rule); border-radius: 999px; padding: 1px 9px; font-variant-numeric: tabular-nums; }
+.note { font-size: 13px; color: var(--muted); }
+.warn { color: var(--accent); font-weight: 500; }
+.walk .route { font-size: 14.5px; font-family: var(--body); font-weight: 500; }
+
+/* Midosuji line */
+.picker { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; gap: 8px; background: var(--surface); border-radius: 14px; padding: 12px 14px; position: sticky; top: 0; z-index: 2; box-shadow: 0 6px 14px -12px rgba(0,0,0,.4); }
+.picker label { font-size: 12px; color: var(--muted); }
+.picker select { width: 100%; font: inherit; font-size: 15px; padding: 8px 10px; border-radius: 10px; border: 1.5px solid var(--rule); background: var(--paper); color: var(--ink); }
+.result { display: grid; gap: 6px; }
+.result .big { font-family: var(--display); font-size: 18px; font-weight: 700; }
+.result .big .n { font-family: var(--num); font-size: 26px; color: var(--accent); margin: 0 2px; }
+.line { position: relative; margin: 14px 0 0; padding-left: 4px; }
+.line::before { content: ""; position: absolute; left: 21px; top: 18px; bottom: 18px; width: 8px; background: #e5171f; border-radius: 4px; }
+.st { position: relative; display: flex; align-items: center; gap: 12px; width: 100%; background: none; border: 0; color: var(--ink); font: inherit; text-align: left; padding: 6px 4px; border-radius: 10px; cursor: pointer; }
+.st .roundel { position: relative; z-index: 1; }
+.st .nm { font-family: var(--display); font-weight: 700; font-size: 16px; }
+.st .zh { font-size: 12px; color: var(--muted); margin-left: 6px; font-family: var(--body); font-weight: 400; }
+.st .xf { display: block; font-size: 12px; color: var(--muted); }
+.st.from { background: var(--accent-soft); }
+.st.to { background: var(--surface); outline: 2px solid var(--accent); }
+.st.between .roundel { border-color: #f59a9d; }
+.st .pin { margin-left: auto; font-size: 11.5px; font-weight: 700; color: #fff; background: var(--accent); border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
+.legend { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-top: 8px; }
+.legend div { display: flex; align-items: center; gap: 8px; background: var(--surface); border-radius: 10px; padding: 7px 10px; font-size: 13px; }
+
+/* transfer + signs */
+.card { background: var(--surface); border-radius: 14px; padding: 12px 14px; display: grid; gap: 6px; }
+.stack { display: grid; gap: 10px; }
+.card h3 { margin: 0; font-family: var(--display); font-size: 16px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.card ol { margin: 0; padding-left: 20px; font-size: 14px; }
+.card ol li { margin: 2px 0; }
+.kw { font-family: var(--display); font-weight: 700; background: var(--sign); color: var(--sign-ink); padding: 0 6px; border-radius: 4px; white-space: nowrap; }
+.vocab { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.vocab .card { gap: 2px; }
+.vocab .jp { font-family: var(--display); font-weight: 900; font-size: 19px; }
+.vocab .rd { font-size: 11.5px; color: var(--muted); }
+.vocab .mn { font-size: 13.5px; }
+
+
+.pick-row { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: end; }
+.pick-col { display: grid; gap: 2px; min-width: 0; }
+.swap { font: inherit; font-size: 18px; width: 40px; height: 40px; border-radius: 10px; border: 1.5px solid var(--rule); background: var(--paper); color: var(--ink); cursor: pointer; }
+.picker { position: static; }
+.rstep { background: var(--paper); border-radius: 12px; padding: 10px 12px; border-left: 6px solid var(--c, var(--rule)); display: grid; gap: 7px; }
+.rstep.walk { border: 1.5px dashed var(--rule); background: transparent; font-size: 13.5px; }
+.lname { font-size: 12px; color: var(--muted); }
+.lchips { display: flex; gap: 8px; overflow-x: auto; padding: 2px 0 8px; scrollbar-width: none; }
+.lchips::-webkit-scrollbar { display: none; }
+.lchip { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: 13px; background: var(--surface); color: var(--ink); border: 1.5px solid var(--rule); border-radius: 999px; padding: 4px 12px 4px 5px; cursor: pointer; }
+.lchip[aria-pressed="true"] { border-color: var(--ink); font-weight: 700; }
+.tapbar { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); margin: 2px 0 4px; }
+.seg { font: inherit; font-size: 13px; border: 1.5px solid var(--rule); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 2px 12px; cursor: pointer; }
+.seg[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.line::before { background: var(--lc, #e5171f) !important; }
+.node { width: 22px; height: 22px; margin: 0 3px; border-radius: 50%; background: var(--surface); border: 5px solid var(--c); position: relative; z-index: 1; flex: 0 0 auto; }
+.nmw { display: grid; }
+.st .xf { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 2px; }
+.dot { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 17px; padding: 0 4px; border-radius: 4px; background: var(--c); color: #fff; font-size: 10.5px; font-weight: 700; }
+.lchip:focus-visible, .seg:focus-visible, .swap:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+
+.tripc { width: 100%; display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; text-align: left; font: inherit; color: var(--ink); background: var(--surface); border: 0; border-left: 6px solid var(--accent); border-radius: 14px; padding: 12px 14px; cursor: pointer; }
+.tripc .tnum { font-family: var(--num); font-weight: 700; font-size: 20px; color: var(--accent); }
+.tripc .tbody { display: grid; gap: 3px; }
+.tripc .tgo { font-size: 13px; font-weight: 700; color: var(--accent); white-space: nowrap; }
+.tripc:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.tipbox { background: var(--accent-soft); border-radius: 10px; padding: 8px 12px; font-size: 13.5px; }
+.xfer { border: 1.5px dashed var(--rule); border-radius: 12px; padding: 9px 12px; display: grid; gap: 4px; font-size: 13.5px; }
+.xhead { font-weight: 700; }
+.xroute { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.xtip { color: var(--muted); }
+.path { list-style: none; margin: 2px 0 0; padding: 0; position: relative; }
+.path::before { content: ""; position: absolute; left: 7px; top: 12px; bottom: 12px; width: 5px; background: var(--c); border-radius: 3px; }
+.path li { position: relative; padding: 3px 0 3px 26px; font-size: 14px; display: flex; align-items: center; gap: 6px; }
+.path li::before { content: ""; position: absolute; left: 3px; top: 50%; transform: translateY(-50%); width: 13px; height: 13px; border-radius: 50%; background: var(--surface); border: 3px solid var(--c); box-sizing: border-box; }
+.path li.end { font-family: var(--display); font-weight: 700; font-size: 15.5px; }
+.path li.end::before { width: 17px; height: 17px; left: 1px; background: var(--c); }
+.path .no { font-family: var(--num); font-size: 12px; color: var(--muted); font-weight: 600; }
+.path .pin, .rstep .pin { font-size: 11px; font-weight: 700; color: #fff; background: var(--accent); border-radius: 999px; padding: 0 7px; }
+
+
+.ask { background: var(--surface); border-radius: 14px; padding: 12px 14px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; min-width: 0; margin-bottom: 12px; border: 2px solid var(--accent); }
+.ask-title { font-family: var(--display); font-weight: 700; font-size: 15.5px; }
+.ask-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; min-width: 0; }
+.ask-row label { font-size: 12px; color: var(--muted); }
+.ask-in { display: flex; gap: 6px; min-width: 0; width: 100%; }
+.ask input { flex: 1 1 0; width: 100%; min-width: 0; -webkit-appearance: none; appearance: none; font: inherit; font-size: 16px; padding: 9px 11px; border-radius: 10px; border: 1.5px solid var(--rule); background: var(--paper); color: var(--ink); }
+.mini { flex: 0 0 auto; font: inherit; font-size: 13px; border: 1.5px solid var(--rule); background: var(--paper); color: var(--ink); border-radius: 10px; padding: 0 10px; cursor: pointer; white-space: nowrap; }
+.go-btn { width: 100%; font: inherit; font-weight: 700; font-size: 15px; background: var(--accent); color: #fff; border: 0; border-radius: 10px; padding: 10px; cursor: pointer; }
+.go-btn:disabled { opacity: .6; }
+.ask input:focus-visible, .mini:focus-visible, .go-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+#qOut { display: grid; gap: 6px; }
+.pl { display: flex; gap: 8px; align-items: baseline; font-size: 14px; }
+.plr { flex: 0 0 auto; font-size: 11.5px; font-weight: 700; background: var(--sign); color: var(--sign-ink); border-radius: 5px; padding: 1px 6px; }
+.ai { display: inline-block; margin-left: 6px; font-size: 11px; color: var(--muted); border: 1px solid var(--rule); border-radius: 999px; padding: 0 6px; }
+
+
+.spots { display: flex; flex-wrap: wrap; gap: 5px; margin: 2px 0; }
+.spot { font-size: 12.5px; background: var(--accent-soft); color: var(--ink); border-radius: 6px; padding: 1px 7px; }
+
+/* tab bar */
+nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; background: var(--surface); border-top: 1px solid var(--rule); display: flex; justify-content: center; padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); z-index: 5; }
+nav.tabs .inner { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; width: 100%; max-width: 560px; }
+.tab { font: inherit; font-size: 12.5px; background: none; border: 0; color: var(--muted); padding: 6px 2px; border-radius: 10px; cursor: pointer; display: grid; justify-items: center; gap: 1px; }
+.tab .ico { font-family: var(--num); font-weight: 700; font-size: 17px; line-height: 1; }
+.tab[aria-current="page"] { color: var(--accent); background: var(--accent-soft); font-weight: 700; }
+@media (prefers-reduced-motion: no-preference) { .leg, .card { animation: rise .25s ease-out both; } @keyframes rise { from { transform: translateY(4px); } to { transform: none; } } }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>大阪地鐵隨身指南</h1>
+    <div class="home"><span class="roundel sm"><b>M</b><span>21</span></span>住大國町</div>
+  </header>
+
+  <section data-view="trip" id="v-trip">
+    <div class="days" id="days" role="group" aria-label="選擇日期"></div>
+    <div class="dayhead"><h2 id="dayTitle"></h2><span class="go" id="dayGo"></span></div>
+    <div class="legs" id="legs"></div>
+  </section>
+
+  <section data-view="line" id="v-line">
+    <h2>路線查詢</h2>
+    <p class="lead">輸入你在哪、要去哪，會先幫你找最近的車站；也可以直接在下面選站。</p>
+    <form class="ask" id="qForm" autocomplete="off">
+      <div class="ask-title">📍 輸入地點，幫你找車站</div>
+      <div class="ask-row">
+        <label for="qFrom">我現在在</label>
+        <div class="ask-in"><input id="qFrom" list="placeList" placeholder="例如：飯店、道頓堀、大阪城"><button type="button" class="mini" id="qHotel">飯店</button></div>
+      </div>
+      <div class="ask-row">
+        <label for="qTo">我要去</label>
+        <div class="ask-in"><input id="qTo" list="placeList" placeholder="例如：清水寺、環球影城、黑門市場"><button type="button" class="mini" id="qSwap" aria-label="對調">⇅</button></div>
+      </div>
+      <datalist id="placeList"></datalist>
+      <button type="submit" class="go-btn" id="qGo">幫我找車站</button>
+      <div id="qOut" aria-live="polite"></div>
+    </form>
+    <div class="picker" id="picker">
+      <div class="pick-row">
+        <div class="pick-col"><label for="selFrom">從</label><select id="selFrom"></select></div>
+        <button class="swap" id="swap" aria-label="起點終點對調">⇅</button>
+        <div class="pick-col"><label for="selTo">到</label><select id="selTo"></select></div>
+      </div>
+      <div class="result" id="result" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section data-view="signs" id="v-signs">
+    <h2>月台與車廂常見標示</h2>
+    <div class="vocab" id="vocab"></div>
+    <h2>車種（由慢到快）</h2>
+    <div class="stack" id="types"></div>
+    <h2>IC 卡小提醒</h2>
+    <div class="stack" id="ic"></div>
+  </section>
+</div>
+
+<nav class="tabs" aria-label="主選單"><div class="inner">
+  <button class="tab" data-go="trip"><span class="ico">1–5</span>每日路線</button>
+  <button class="tab" data-go="line"><span class="ico">M</span>路線查詢</button>
+  <button class="tab" data-go="signs"><span class="ico">あ</span>看懂標示</button>
+</div></nav>
+
+<script>
+const C = { M: "#e5171f", NANKAI: "#e8721c", JR: "#0a6ab6", HANKYU: "#7a1f2b", HANSHIN: "#0b4fa0", KEIHAN: "#0e8a5f", BUS: "#6b6f76" };
+const OP = {
+  M:      { label: "M",   c: C.M, roundel: true },
+  NANKAI: { label: "南海", c: C.NANKAI },
+  JR:     { label: "JR",  c: C.JR },
+  HANKYU: { label: "阪急", c: C.HANKYU },
+  HANSHIN:{ label: "阪神", c: C.HANSHIN },
+  KEIHAN: { label: "京阪", c: C.KEIHAN },
+  BUS:    { label: "巴士", c: C.BUS }
+};
+
+const DAYS = [
+  { id: "1124", d: "11/24", w: "二", title: "抵達・心齋橋", go: "13:10 落地", trips: [
+    { from: "関西空港", to: "大国町", spots: ["回飯店放行李"], note: "第 2 航廈要先搭接駁巴士到第 1 航廈。" },
+    { from: "大国町", to: "心斎橋", spots: ["大丸心齋橋（9F 寶可夢・7F ReFa・4F 三宅一生）", "PARCO（三宅一生・PORTER・米菲兔）", "心齋橋筋商店街", "道頓堀・固力果", "晚餐：牛舌的檸檬"], note: "4 號出口直通大丸；之後一路往南走到道頓堀、日本橋。" },
+    { from: "日本橋", to: "大国町", spots: ["回飯店"], note: "也可以走路約 20 分。" }
+  ]},
+  { id: "1125", d: "11/25", w: "三", title: "京都", go: "07:00 出門", trips: [
+    { from: "大国町", to: "伏見稲荷", spots: ["伏見稻荷大社・千本鳥居"] },
+    { from: "伏見稲荷", to: "清水五条", spots: ["清水寺", "三年坂・二年坂", "八坂神社", "祇園・花見小路", "午餐：京都勝牛", "四條逛街・寶可夢中心", "錦市場", "晚餐：大丸京都 8F 鰻富士／名代豬排"], note: "到站後這些都用走的，最後走到大丸京都。" },
+    { from: "烏丸", to: "大国町", spots: ["回飯店"], note: "大丸京都地下樓層直通阪急烏丸站。" }
+  ]},
+  { id: "1126", d: "11/26", w: "四", title: "環球影城", go: "07:45 出門", trips: [
+    { from: "大国町", to: "ユニバーサルシティ", spots: ["日本環球影城（09:00–21:00）"] },
+    { from: "ユニバーサルシティ", to: "大国町", spots: ["回飯店"], note: "閉園後車站很擠，多抓 15–30 分。" }
+  ]},
+  { id: "1127", d: "11/27", w: "五", title: "勝尾寺＋神戶", go: "07:15 出門", trips: [
+    { from: "大国町", to: "箕面萱野", spots: ["勝尾寺（轉 30 系統巴士）"], note: "8 號乘車處搭 30 系統巴士，約 25 分，¥800；回程搭同一線回箕面萱野。" },
+    { from: "箕面萱野", to: "三宮", spots: ["午餐：賀正軒拉麵／Steak Land", "三宮中心街", "北野異人館", "生田神社", "元町商店街", "麵包超人博物館（16:00 前入館）", "umie・馬賽克摩天輪", "神戶塔・美利堅公園", "南京町"], note: "神戶市區都用走的，最後從南京町走到阪神元町站。" },
+    { from: "元町", to: "日本橋", spots: ["晚餐：鶴屋壽喜燒"], note: "吃完走路或搭計程車回飯店。" }
+  ]},
+  { id: "1128", d: "11/28", w: "六", title: "回高雄", go: "10:00 出門", trips: [
+    { from: "大国町", to: "関西空港", spots: ["14:10 飛高雄"], note: "到機場先辦退稅，再託運行李。" }
+  ]}
+];
+
+/* Network data. */
+const NET = [
+  { id: "M", name: "御堂筋線", short: "M", c: "#e5171f", metro: true, no: 6,
+    st: ["箕面萱野","箕面船場阪大前","千里中央","桃山台","緑地公園","江坂","東三国","新大阪","西中島南方","中津","梅田","淀屋橋","本町","心斎橋","なんば","大国町","動物園前","天王寺","昭和町","西田辺","長居","あびこ","北花田","新金岡","なかもず"],
+    km: [0,0.9,2.5,4.5,6.4,8.4,10.2,11.3,12.0,13.9,14.9,16.2,17.1,18.0,18.9,20.1,21.1,22.3,24.1,25.0,26.3,27.8,29.4,31.0,32.9],
+    dirs: ["新大阪・千里中央 方面", "天王寺・なかもず 方面"] },
+  { id: "T", name: "谷町線", short: "T", c: "#522886", metro: true, no: 11,
+    st: ["大日","守口","太子橋今市","千林大宮","関目高殿","野江内代","都島","天神橋筋六丁目","中崎町","東梅田","南森町","天満橋","谷町四丁目","谷町六丁目","谷町九丁目","四天王寺前夕陽ヶ丘","天王寺","阿倍野","文の里","田辺","駒川中野","平野","喜連瓜破","出戸","長原","八尾南"],
+    km: [0,1.8,3.0,4.0,5.1,5.9,7.2,8.5,9.3,10.3,11.5,13.1,13.8,14.6,15.5,16.5,17.6,18.2,19.3,20.3,21.3,23.0,24.4,25.7,26.9,28.1],
+    dirs: ["東梅田・大日 方面", "天王寺・八尾南 方面"] },
+  { id: "Y", name: "四つ橋線", short: "Y", c: "#0078ba", metro: true, no: 11,
+    st: ["西梅田","肥後橋","本町","四ツ橋","なんば","大国町","花園町","岸里","玉出","北加賀屋","住之江公園"],
+    km: [0,0.9,1.9,2.9,3.7,4.9,6.2,7.3,8.6,9.7,11.4],
+    dirs: ["西梅田 方面", "住之江公園 方面"] },
+  { id: "C", name: "中央線", short: "C", c: "#019a66", metro: true, no: 9,
+    st: ["夢洲","コスモスクエア","大阪港","朝潮橋","弁天町","九条","阿波座","本町","堺筋本町","谷町四丁目","森ノ宮","緑橋","深江橋","高井田","長田"],
+    km: [0,3.2,5.6,7.1,8.7,10.0,11.5,12.6,13.3,14.3,15.6,16.8,17.9,19.3,21.1],
+    dirs: ["コスモスクエア・夢洲 方面", "森ノ宮・長田 方面"] },
+  { id: "S", name: "千日前線", short: "S", c: "#e44d93", metro: true, no: 11,
+    st: ["野田阪神","玉川","阿波座","西長堀","桜川","なんば","日本橋","谷町九丁目","鶴橋","今里","新深江","小路","北巽","南巽"],
+    km: [0,0.6,1.9,2.9,3.8,4.9,5.6,6.6,7.7,9.2,10.1,11.1,12.0,13.1],
+    dirs: ["なんば・野田阪神 方面", "鶴橋・南巽 方面"] },
+  { id: "K", name: "堺筋線", short: "K", c: "#814721", metro: true, no: 11,
+    st: ["天神橋筋六丁目","扇町","南森町","北浜","堺筋本町","長堀橋","日本橋","恵美須町","動物園前","天下茶屋"],
+    km: [0,0.7,1.3,2.1,3.0,4.0,4.9,5.9,6.6,8.1],
+    dirs: ["天神橋筋六丁目 方面", "動物園前・天下茶屋 方面"] },
+  { id: "N", name: "長堀鶴見緑地線", short: "N", c: "#8db33a", metro: true, no: 11,
+    st: ["大正","ドーム前千代崎","西長堀","西大橋","心斎橋","長堀橋","松屋町","谷町六丁目","玉造","森ノ宮","大阪ビジネスパーク","京橋","蒲生四丁目","今福鶴見","横堤","鶴見緑地","門真南"],
+    km: [0,0.6,1.6,2.2,2.7,3.4,4.0,4.4,5.7,6.7,7.8,8.5,10.2,11.4,12.5,13.7,15.0],
+    dirs: ["心斎橋・大正 方面", "京橋・門真南 方面"] },
+  { id: "I", name: "今里筋線", short: "I", c: "#ee7b1a", metro: true, no: 11,
+    st: ["井高野","瑞光四丁目","だいどう豊里","太子橋今市","清水","新森古市","関目成育","蒲生四丁目","鴫野","緑橋","今里"],
+    km: [0,0.9,1.9,3.7,4.9,5.8,7.1,8.5,9.4,10.6,11.9],
+    dirs: ["井高野 方面", "今里 方面"] },
+  { id: "P", name: "ニュートラム", short: "P", c: "#00a3e0", metro: true, no: 9,
+    st: ["コスモスクエア","トレードセンター前","中ふ頭","ポートタウン西","ポートタウン東","フェリーターミナル","南港東","南港口","平林","住之江公園"],
+    km: [0,0.6,1.3,2.0,2.5,4.0,4.8,5.4,6.7,7.9],
+    dirs: ["コスモスクエア 方面", "住之江公園 方面"] },
+
+  { id: "JRO", name: "JR 大阪環状線", short: "JR", c: "#e8423c", loop: true,
+    st: ["大阪","福島","野田","西九条","弁天町","大正","芦原橋","今宮","新今宮","天王寺","寺田町","桃谷","鶴橋","玉造","森ノ宮","大阪城公園","京橋","桜ノ宮","天満"],
+    t: [2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2,2,2,3] },
+  { id: "JRP", name: "JR ゆめ咲線", short: "JR", c: "#0a6ab6",
+    st: ["西九条","安治川口","ユニバーサルシティ","桜島"], t: [3,2,2],
+    dirs: ["西九条 方面", "桜島 行"] },
+  { id: "JRA", name: "JR 京都線・神戸線（新快速）", short: "JR", c: "#0a6ab6",
+    st: ["京都","高槻","新大阪","大阪","尼崎","芦屋","三ノ宮","元町","神戸"], t: [14,11,4,6,8,7,2,2],
+    dirs: ["新大阪・京都 方面", "三ノ宮・神戸 方面"], note: "只列新快速停靠站。" },
+  { id: "JRR", name: "JR 阪和線・關西空港線（關空快速）", short: "JR", c: "#0a6ab6",
+    st: ["天王寺","日根野","りんくうタウン","関西空港"], t: [38,5,5],
+    dirs: ["天王寺 方面", "関西空港 行"], note: "只列主要站。" },
+  { id: "NK", name: "南海本線・空港線", short: "南海", c: "#e8721c",
+    st: ["なんば","新今宮","天下茶屋","堺","岸和田","泉佐野","りんくうタウン","関西空港"], t: [3,3,8,13,9,3,7],
+    dirs: ["なんば 方面", "関西空港 行"], note: "只列空港急行主要停靠站；往機場要看「関西空港行」。" },
+  { id: "HKK", name: "阪急京都線", short: "阪急", c: "#7a1f2b",
+    st: ["大阪梅田","十三","淡路","茨木市","高槻市","長岡天神","桂","西院","烏丸","京都河原町"], t: [4,5,8,6,9,5,5,3,2],
+    dirs: ["大阪梅田 方面", "京都河原町 方面"], note: "只列特急停靠站。" },
+  { id: "HKA", name: "阪急嵐山線", short: "阪急", c: "#7a1f2b",
+    st: ["桂","上桂","松尾大社","嵐山"], t: [3,2,3],
+    dirs: ["桂 方面", "嵐山 方面"], note: "在阪急京都線「桂」站轉乘。" },
+  { id: "HKB", name: "阪急神戸線", short: "阪急", c: "#7a1f2b",
+    st: ["大阪梅田","十三","西宮北口","夙川","岡本","神戸三宮"], t: [4,11,3,5,8],
+    dirs: ["大阪梅田 方面", "神戸三宮 方面"], note: "只列特急停靠站。" },
+  { id: "HSM", name: "阪神本線", short: "阪神", c: "#0b4fa0",
+    st: ["大阪梅田","尼崎","甲子園","西宮","芦屋","御影","神戸三宮","元町"], t: [7,5,3,4,4,7,2],
+    dirs: ["大阪梅田 方面", "神戸三宮 方面"], note: "只列直通特急停靠站。" },
+  { id: "HSN", name: "阪神なんば線・近鉄奈良線", short: "阪神", c: "#0b4fa0",
+    st: ["尼崎","西九条","ドーム前","桜川","大阪難波","近鉄日本橋","大阪上本町","鶴橋","生駒","大和西大寺","近鉄奈良"], t: [9,3,2,2,2,3,2,13,10,5],
+    dirs: ["尼崎・神戸三宮 方面", "近鉄奈良 方面"], note: "阪神與近鐵直通運轉，只列主要站。" },
+  { id: "KH", name: "京阪本線", short: "京阪", c: "#0e8a5f",
+    st: ["淀屋橋","北浜","天満橋","京橋","枚方市","樟葉","中書島","丹波橋","伏見稲荷","東福寺","七条","清水五条","祇園四条","三条","出町柳"], t: [1,2,3,13,5,9,3,6,2,2,2,2,2,4],
+    dirs: ["淀屋橋 方面", "出町柳 方面"], note: "只列主要站。" }
+];
+/* Stations with different names that share one transfer point, and walking minutes inside each. */
+const GROUP = {
+  "JRO:大阪":"梅田","JRA:大阪":"梅田","T:東梅田":"梅田","Y:西梅田":"梅田","M:梅田":"梅田","HKK:大阪梅田":"梅田","HKB:大阪梅田":"梅田","HSM:大阪梅田":"梅田",
+  "NK:なんば":"なんば","HSN:大阪難波":"なんば",
+  "Y:四ツ橋":"心斎橋",
+  "M:動物園前":"新今宮","K:動物園前":"新今宮",
+  "HSN:近鉄日本橋":"日本橋","T:谷町九丁目":"上本町","HSN:大阪上本町":"上本町",
+  "K:扇町":"天満","JRO:天満":"天満",
+  "N:ドーム前千代崎":"ドーム前","HKB:神戸三宮":"三宮","HSM:神戸三宮":"三宮","JRA:三ノ宮":"三宮",
+  "HKK:京都河原町":"四条河原町","KH:祇園四条":"四条河原町",
+  "JRA:尼崎":"JR尼崎","JRA:芦屋":"JR芦屋"
+};
+const WALK = { "梅田":7, "なんば":7, "心斎橋":4, "本町":4, "天王寺":5, "新今宮":5, "大国町":2, "日本橋":3, "上本町":4, "京橋":4, "鶴橋":3, "三宮":5, "四条河原町":5, "新大阪":5, "天満":4, "ドーム前":4, "桜川":4, "淀屋橋":3, "北浜":3, "天満橋":3, "十三":2, "尼崎":2, "桂":2, "西九条":3, "関西空港":3, "りんくうタウン":3 };
+const HOME_GROUP = "大国町";
+
+const VOCAB = [
+  ["〇〇 方面","ほうめん","往〇〇方向（看終點方向）"],
+  ["〇〇 行","いき","這班車開到〇〇"],
+  ["のりば","乗り場","月台／乘車處"],
+  ["改札","かいさつ","閘門（刷卡進出）"],
+  ["出口","でぐち","出口，常有編號"],
+  ["乗り換え","のりかえ","轉乘"],
+  ["エレベーター","","電梯"],
+  ["精算機","せいさんき","補票／IC 卡加值機"],
+  ["のりこし","乗り越し","坐過站，要補票"],
+  ["女性専用車","じょせいせんようしゃ","女性專用車廂，男生別上"],
+  ["終点","しゅうてん","終點站"],
+  ["次は","つぎは","下一站是…"]
+];
+const TYPES = [
+  ["普通・各停","每站都停，最慢但最不會坐過站。"],
+  ["準急・区間急行","前段每站停，後段跳站。"],
+  ["急行・快速急行","跳過不少站，搭前先看月台看板有沒有寫你要去的站。"],
+  ["特急・ラピート","停最少站。南海 Rapi:t 要另外買特急券。"]
+];
+const IC = [
+  "ICOCA 等 IC 卡在地鐵、JR、南海、阪急、阪神、京阪、巴士都能刷。",
+  "餘額不夠時，出站閘門會擋下來，到旁邊的 <span class='kw'>精算機</span> 加值再刷一次就好。",
+  "加值機只收現金，身上留點千圓鈔。",
+  "巴士從後門上車時刷一次，下車時在司機旁再刷一次。"
+];
+
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+const store = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
+
+function badge(opKey) {
+  const o = OP[opKey];
+  if (o.roundel) return `<span class="roundel" style="--c:${o.c}"><b>M</b><span>線</span></span>`;
+  return `<span class="tag" style="--c:${o.c}">${o.label}</span>`;
+}
+
+/* ----- trip view ----- */
+function renderDays(active) {
+  $("#days").innerHTML = DAYS.map(d => `<button class="day" data-day="${d.id}" aria-pressed="${d.id === active}"><b>${d.d}</b>（${d.w}）${esc(d.title)}</button>`).join("");
+}
+function renderLegs(id) {
+  const day = DAYS.find(d => d.id === id) || DAYS[0];
+  $("#dayTitle").textContent = `${day.d}（${day.w}）${day.title}`;
+  $("#dayGo").textContent = day.go;
+  $("#legs").innerHTML = day.trips.map((t, i) => `<button class="tripc" data-from="${esc(t.from)}" data-to="${esc(t.to)}">
+      <span class="tnum">${i + 1}</span>
+      <span class="tbody"><span class="route">${esc(t.from)}<span class="arr">→</span>${esc(t.to)}</span>${t.spots ? `<span class="spots">${t.spots.map(s => `<span class="spot">${esc(s)}</span>`).join("")}</span>` : ""}${t.note ? `<span class="note">${esc(t.note)}</span>` : ""}</span>
+      <span class="tgo">查路線 ›</span>
+    </button>`).join("");
+}
+function pickDay(id) {
+  renderDays(id); renderLegs(id); store.set("metro-day", id);
+}
+$("#days").addEventListener("click", e => { const b = e.target.closest(".day"); if (b) pickDay(b.dataset.day); });
+$("#legs").addEventListener("click", e => {
+  const b = e.target.closest(".tripc"); if (!b) return;
+  setSel("#selFrom", b.dataset.from); setSel("#selTo", b.dataset.to); renderRoute();
+  location.hash = "line"; window.scrollTo(0, 0);
+});
+
+/* ----- network + route finder ----- */
+const NODES = [];            // {li, si, name, g}
+const ADJ = [];              // per node: [{to, w, kind}]
+const GROUPS = new Map();    // g -> [node ids]
+NET.forEach((L, li) => {
+  L.base = NODES.length;
+  L.st.forEach((name, si) => {
+    const g = GROUP[`${L.id}:${name}`] || name;
+    const id = NODES.length;
+    NODES.push({ li, si, name, g });
+    ADJ.push([]);
+    if (!GROUPS.has(g)) GROUPS.set(g, []);
+    GROUPS.get(g).push(id);
+  });
+});
+function rideMin(L, a, b) { // a,b adjacent indexes
+  if (L.km) return 0.6 + Math.abs(L.km[b] - L.km[a]) * 1.55;
+  const i = Math.min(a, b), j = Math.max(a, b);
+  if (L.loop && i === 0 && j === L.st.length - 1) return L.t[L.t.length - 1];
+  return L.t[i];
+}
+NET.forEach(L => {
+  const n = L.st.length;
+  for (let i = 0; i < n - 1; i++) {
+    const w = rideMin(L, i, i + 1);
+    ADJ[L.base + i].push({ to: L.base + i + 1, w, kind: "ride" });
+    ADJ[L.base + i + 1].push({ to: L.base + i, w, kind: "ride" });
+  }
+  if (L.loop) {
+    const w = rideMin(L, 0, n - 1);
+    ADJ[L.base].push({ to: L.base + n - 1, w, kind: "ride" });
+    ADJ[L.base + n - 1].push({ to: L.base, w, kind: "ride" });
+  }
+});
+GROUPS.forEach((ids, g) => {
+  for (const a of ids) for (const b of ids) {
+    if (a === b || NODES[a].li === NODES[b].li) continue;
+    const A = NODES[a], B = NODES[b];
+    const bothMetro = NET[A.li].metro && NET[B.li].metro;
+    const w = (A.name === B.name && bothMetro) ? 3 : (WALK[g] ?? 3);
+    ADJ[a].push({ to: b, w, kind: "walk" });
+  }
+});
+
+function findRoute(fromG, toG) {
+  if (fromG === toG) return null;
+  const PEN = 4; // per transfer, so fewer changes win close calls
+  const dist = new Array(NODES.length).fill(Infinity), prev = new Array(NODES.length).fill(null), done = new Array(NODES.length).fill(false);
+  const targets = new Set(GROUPS.get(toG));
+  // a small nudge toward the station literally named, e.g. 心斎橋 itself rather than 四ツ橋
+  for (const s of GROUPS.get(fromG)) dist[s] = NODES[s].name === fromG ? 0 : 1.5;
+  while (true) {
+    let u = -1, best = Infinity;
+    for (let i = 0; i < NODES.length; i++) if (!done[i] && dist[i] < best) { best = dist[i]; u = i; }
+    if (u < 0) break;
+    done[u] = true;
+    for (const e of ADJ[u]) {
+      if (e.kind === "walk" && prev[u] && prev[u].kind === "walk") continue;
+      if (e.kind === "walk" && prev[u] === null) continue; // no walking at the start station
+      const nd = dist[u] + e.w + (e.kind === "walk" ? PEN : 0);
+      if (nd < dist[e.to]) { dist[e.to] = nd; prev[e.to] = { from: u, kind: e.kind, w: e.w }; }
+    }
+  }
+  let end = -1, bestEnd = Infinity;
+  for (const t of targets) { const c = dist[t] + (NODES[t].name === toG ? 0 : 1.5); if (c < bestEnd) { bestEnd = c; end = t; } }
+  return end < 0 || bestEnd === Infinity ? null : build(end, prev);
+}
+function build(end, prev) {
+  const edges = [];
+  for (let v = end; prev[v]; v = prev[v].from) edges.unshift({ from: prev[v].from, to: v, kind: prev[v].kind, w: prev[v].w });
+  const steps = [];
+  for (const e of edges) {
+    const last = steps[steps.length - 1];
+    if (e.kind === "ride" && last && last.kind === "ride" && NODES[last.to].li === NODES[e.to].li) {
+      last.to = e.to; last.n++; last.min += e.w; last.path.push(e.to); continue;
+    }
+    steps.push(e.kind === "ride" ? { kind: "ride", from: e.from, to: e.to, n: 1, min: e.w, second: e.to, path: [e.from, e.to] } : { kind: "walk", from: e.from, to: e.to, min: e.w });
+  }
+  return steps;
+}
+function dirText(step) {
+  const A = NODES[step.from], B = NODES[step.second], L = NET[A.li], N = L.st.length;
+  if (L.loop) {
+    const plus = (B.si - A.si + N) % N === 1;
+    return { sign: `${plus ? "内回り" : "外回り"}（往 ${NODES[step.to].name}）`, sub: L.name };
+  }
+  const up = B.si < A.si;
+  let sign = L.dirs[up ? 0 : 1], warn = "";
+  if (L.id === "M" && up && NODES[step.to].si < 2) { sign = "箕面萱野 行"; warn = "要搭「箕面萱野行」；搭到「千里中央行」就在千里中央同月台換車。"; }
+  if (L.id === "KH" && ["伏見稲荷", "東福寺", "清水五条"].some(x => x === NODES[step.to].name || x === A.name)) warn = "特急不停這站：搭準急或普通，或坐特急到丹波橋再換普通車。";
+  return { sign, warn };
+}
+function lineBadge(L, small) {
+  if (L.metro) return `<span class="roundel${small ? " sm" : ""}" style="--c:${L.c}"><b>${L.short}</b><span>線</span></span>`;
+  return `<span class="tag" style="--c:${L.c}">${L.short}</span>`;
+}
+function stationNo(L, si) { return L.metro ? `${L.short}${String(L.no + si).padStart(2, "0")}` : ""; }
+
+/* ----- route view ----- */
+const TIP = {
+  "HKK:大阪梅田": "跟著「阪急線」指標走，阪急月台在大樓 3 樓，搭手扶梯上去。",
+  "HKB:大阪梅田": "跟著「阪急線」指標走，阪急月台在大樓 3 樓，搭手扶梯上去。",
+  "HSN:大阪難波": "出地鐵改札，跟著「阪神なんば線・近鉄線」指標走，地下相連。",
+  "NK:なんば": "出地鐵改札，跟著「南海線」指標走。",
+  "KH:淀屋橋": "地下相連，跟著「京阪電車」指標走。",
+  "JRP:西九条": "不用出站，跟著「ゆめ咲線」指標換月台。",
+  "JRO:西九条": "不用出站，跟著「大阪環状線」指標換月台。",
+  "JRO:新今宮": "出地鐵改札，跟著「JR線」指標走，再刷卡進 JR 改札。",
+  "NK:新今宮": "出地鐵改札，跟著「南海線」指標走，有電梯。",
+  "M:動物園前": "出改札後，跟著「地下鉄 動物園前」指標走。",
+  "K:動物園前": "出改札後，跟著「地下鉄 動物園前」指標走。",
+  "KH:祇園四条": "出阪急站後沿四條通往東走，過鴨川就到。",
+  "HKK:京都河原町": "沿四條通往西走，過鴨川就到。",
+  "HSN:尼崎": "同一站換月台，換往「大阪難波・近鉄奈良」方向的車。",
+  "HSM:尼崎": "同一站換月台，換往「神戸三宮」方向的車。",
+  "HKA:桂": "不用出站，跟著「嵐山線」指標換月台。",
+  "HKK:桂": "不用出站，跟著「京都線」指標換月台。"
+};
+const ARRIVE = {
+  "M:心斎橋": "去大丸、PARCO：走 4 號出口，地下道直通大丸。",
+  "M:大国町": "出站走約 3 分到飯店。",
+  "Y:大国町": "出站走約 3 分到飯店。",
+  "M:箕面萱野": "去勝尾寺：北改札出站，右手邊手扶梯下到 1 樓，8 號乘車處搭阪急巴士 30 系統（約 25 分，¥800）。",
+  "KH:伏見稲荷": "出站走約 5 分到伏見稻荷大社。",
+  "KH:清水五条": "往清水寺要走上坡約 20–25 分；走不動可以搭計程車。",
+  "JRP:ユニバーサルシティ": "出站沿 CityWalk 走約 5 分到環球影城大門。",
+  "NK:関西空港": "國際線出境在第 1 航廈 4 樓；先辦退稅，再託運行李。",
+  "JRR:関西空港": "國際線出境在第 1 航廈 4 樓；先辦退稅，再託運行李。"
+};
+const DEPART = {
+  "HKK:烏丸": "從大丸京都地下樓層直通阪急烏丸站。",
+  "NK:関西空港": "入境後跟著「Railways／南海」指標走；第 2 航廈先搭接駁巴士到第 1 航廈。",
+  "JRP:ユニバーサルシティ": "閉園後車站很擠，進站可能要排隊。"
+};
+const nkey = id => `${NET[NODES[id].li].id}:${NODES[id].name}`;
+function signName(L) { if (L.metro) return `地下鉄 ${L.name}`; if (L.short === "JR") return "JR線"; return `${L.short}線`; }
+function initLine() {
+  const opts = NET.map(L => `<optgroup label="${L.name}">${L.st.map(n => { const g = GROUP[`${L.id}:${n}`] || n; return `<option value="${esc(g)}">${esc(n)}</option>`; }).join("")}</optgroup>`).join("");
+  $("#selFrom").innerHTML = opts; $("#selTo").innerHTML = opts;
+  setSel("#selFrom", HOME_GROUP); setSel("#selTo", "心斎橋");
+  $("#selFrom").addEventListener("change", renderRoute);
+  $("#selTo").addEventListener("change", renderRoute);
+  $("#swap").addEventListener("click", () => { const a = $("#selFrom").value, b = $("#selTo").value; setSel("#selFrom", b); setSel("#selTo", a); renderRoute(); });
+  renderRoute();
+}
+function setSel(sel, g) {
+  const el = $(sel), opt = [...el.options].find(o => o.value === g);
+  if (opt) el.value = g;
+}
+function renderRoute() {
+  const fromG = $("#selFrom").value, toG = $("#selTo").value, r = $("#result");
+  if (fromG === toG) { r.innerHTML = `<div class="note">起點和終點一樣，換一站看看。</div>`; return; }
+  const steps = findRoute(fromG, toG);
+  if (!steps) { r.innerHTML = `<div class="note">找不到路線。</div>`; return; }
+  const total = Math.round(steps.reduce((s, x) => s + x.min, 0));
+  const xfers = steps.filter(s => s.kind === "walk").length;
+  const first = steps[0].from, last = steps[steps.length - 1].to;
+  const parts = [];
+  if (DEPART[nkey(first)]) parts.push(`<div class="tipbox">出發：${esc(DEPART[nkey(first)])}</div>`);
+  for (const s of steps) {
+    if (s.kind === "walk") {
+      const A = NODES[s.from], B = NODES[s.to], LB = NET[B.li];
+      const tip = TIP[nkey(s.to)] || `出改札後，跟著「${signName(LB)}」指標走。`;
+      parts.push(`<div class="xfer"><div class="xhead">🔁 轉乘・走約 ${Math.round(s.min)} 分</div>
+        <div class="xroute">${esc(A.name)} → ${lineBadge(LB, true)} ${esc(LB.name)}「${esc(B.name)}」</div>
+        <div class="xtip">${esc(tip)}</div></div>`);
+      continue;
+    }
+    const L = NET[NODES[s.from].li], d = dirText(s);
+    const lis = s.path.map((id, i) => {
+      const nd = NODES[id], end = i === 0 || i === s.path.length - 1;
+      const no = stationNo(L, nd.si);
+      return `<li class="${end ? "end" : ""}">${esc(nd.name)}${no ? `<span class="no">${no}</span>` : ""}${nd.g === HOME_GROUP ? `<span class="pin">飯店</span>` : ""}</li>`;
+    }).join("");
+    parts.push(`<div class="rstep" style="--c:${L.c}">
+      <div class="leg-top">${lineBadge(L)}<div><div class="lname">${L.name}</div><div class="route">${esc(NODES[s.from].name)}<span class="arr">→</span>${esc(NODES[s.to].name)}</div></div></div>
+      <div class="signbox">找：${esc(d.sign)}</div>
+      <div class="meta"><span class="chip">${s.n} 站</span><span class="chip">約 ${Math.max(1, Math.round(s.min))} 分</span></div>
+      ${d.warn ? `<div class="note warn">${esc(d.warn)}</div>` : ""}
+      ${L.note ? `<div class="note">${esc(L.note)}</div>` : ""}
+      <ol class="path">${lis}</ol>
+    </div>`);
+  }
+  if (ARRIVE[nkey(last)]) parts.push(`<div class="tipbox">到站：${esc(ARRIVE[nkey(last)])}</div>`);
+  r.innerHTML = `<div class="big">約<span class="n">${total}</span>分・轉乘<span class="n">${xfers}</span>次</div>
+    <div class="note">不含等車時間；票價以刷卡扣款為準。</div>${parts.join("")}`;
+}
+
+/* ----- "where am I / where to" finder ----- */
+const PLACES = [
+  { k: ["飯店","酒店","住的地方","hotel"], g: "大国町", walk: "走約 3 分" },
+  { k: ["道頓堀","道頓崛","固力果","glico","戎橋","法善寺"], g: "なんば", walk: "走約 5 分" },
+  { k: ["心齋橋","心斎橋","大丸心齋橋","大丸","parco","心齋橋筋","寶可夢中心大阪","寶可夢dx","米菲兔","refa","三宅一生"], g: "心斎橋", walk: "4 號出口直通大丸" },
+  { k: ["黑門市場","黒門市場"], g: "日本橋", walk: "走約 3 分" },
+  { k: ["鶴屋","鶴屋壽喜燒","牛舌的檸檬","牛たんの檸檬","日本橋電器街","電電城","denden"], g: "日本橋", walk: "走約 3–5 分" },
+  { k: ["難波","namba","高島屋","難波公園","なんばパークス","namba parks","難波city"], g: "なんば", walk: "走約 3–5 分" },
+  { k: ["新世界","通天閣","串炸"], g: "新今宮", walk: "從動物園前站走約 5 分" },
+  { k: ["阿倍野harukas","harukas","阿倍野","天王寺動物園","天王寺公園","天王寺"], g: "天王寺", walk: "走約 3–5 分" },
+  { k: ["大阪城","大阪城公園","天守閣"], g: "大阪城公園", walk: "走約 15 分到天守閣" },
+  { k: ["梅田","大阪站","大阪駅","阪急百貨","grand front","梅田藍天大廈","空中庭園","hep five","hepfive","茶屋町"], g: "梅田", walk: "走約 5–10 分" },
+  { k: ["環球影城","usj","universal","環球","哈利波特","任天堂世界","超級任天堂"], g: "ユニバーサルシティ", walk: "走約 5 分到大門" },
+  { k: ["海遊館","天保山"], g: "大阪港", walk: "走約 5–10 分" },
+  { k: ["京瓷巨蛋","大阪巨蛋","京セラドーム"], g: "ドーム前", walk: "走約 3 分" },
+  { k: ["新大阪","新幹線"], g: "新大阪", walk: "" },
+  { k: ["關西機場","関西空港","機場","kix","關西國際機場"], g: "関西空港", walk: "" },
+  { k: ["勝尾寺","箕面"], g: "箕面萱野", walk: "8 號乘車處搭 30 系統巴士約 25 分" },
+  { k: ["伏見稻荷","伏見稲荷","千本鳥居"], g: "伏見稲荷", walk: "走約 5 分" },
+  { k: ["清水寺","三年坂","二年坂","三年板","二年板","產寧坂"], g: "清水五条", walk: "走上坡約 20–25 分" },
+  { k: ["八坂神社","祇園","花見小路"], g: "四条河原町", walk: "從祇園四條站走約 5–10 分" },
+  { k: ["錦市場","四條河原町","河原町","京都高島屋","寶可夢中心京都","京都寶可夢"], g: "四条河原町", walk: "走約 5 分" },
+  { k: ["大丸京都","京都大丸","鰻富士","名代豬排","烏丸"], g: "烏丸", walk: "地下直通" },
+  { k: ["京都站","京都車站","京都駅"], g: "京都", walk: "" },
+  { k: ["北野異人館","異人館","北野"], g: "三宮", walk: "往北上坡走約 15 分" },
+  { k: ["生田神社","三宮中心街","三宮","三之宮","賀正軒","steak land","steakland"], g: "三宮", walk: "走約 5 分" },
+  { k: ["南京町","元町商店街","元町"], g: "元町", walk: "走約 3–5 分" },
+  { k: ["神戶塔","神戸タワー","美利堅公園","メリケンパーク"], g: "元町", walk: "往南走約 10 分" },
+  { k: ["麵包超人","アンパンマン","umie","馬賽克","摩天輪","harborland","臨海樂園"], g: "神戸", walk: "JR 神戶站南口走約 8 分" },
+  { k: ["奈良公園","東大寺","奈良鹿","奈良"], g: "近鉄奈良", walk: "走約 5–20 分" },
+  { k: ["天神橋筋商店街","天神橋","天滿宮","大阪天滿宮"], g: "南森町", walk: "走約 1–5 分" },
+  { k: ["中之島","中央公會堂","大阪市中央公會堂","北濱"], g: "淀屋橋", walk: "走約 5 分" },
+  { k: ["美國村","アメ村","堀江","南堀江"], g: "心斎橋", walk: "從四ツ橋站或心齋橋站走約 5 分" },
+  { k: ["藥妝","松本清","大國藥妝","心齋橋藥妝","唐吉訶德心齋橋"], g: "心斎橋", walk: "心齋橋筋商店街一帶，走約 3 分" },
+  { k: ["唐吉訶德道頓堀","道頓堀唐吉訶德","唐吉訶德摩天輪","唐吉訶德"], g: "なんば", walk: "走約 5 分" },
+  { k: ["道具屋筋","千日前","難波八阪神社","獅子殿"], g: "なんば", walk: "走約 5–8 分" },
+  { k: ["北新地","lucua","大丸梅田","阪神百貨","阪急三番街"], g: "梅田", walk: "走約 3–5 分" },
+  { k: ["大阪歷史博物館","nhk大阪"], g: "谷町四丁目", walk: "走約 3 分" },
+  { k: ["四天王寺"], g: "四天王寺前夕陽ヶ丘", walk: "走約 5 分" },
+  { k: ["萬博紀念公園","萬博公園","太陽之塔","expocity"], g: "千里中央", walk: "轉大阪單軌電車到「万博記念公園」站，約 6 分" },
+  { k: ["臨空城","臨空城outlet","rinku outlet","outlet"], g: "りんくうタウン", walk: "走約 5–10 分" },
+  { k: ["嵐山","渡月橋","竹林","竹林小徑","天龍寺"], g: "嵐山", walk: "走約 5 分到渡月橋，竹林約 20 分" },
+  { k: ["松尾大社"], g: "松尾大社", walk: "走約 3 分" },
+  { k: ["東福寺"], g: "東福寺", walk: "走約 10 分" },
+  { k: ["三十三間堂","京都國立博物館"], g: "七条", walk: "走約 7 分" },
+  { k: ["京都塔"], g: "京都", walk: "走約 2 分" },
+  { k: ["平安神宮","岡崎"], g: "三条", walk: "走約 15–20 分" },
+  { k: ["先斗町","鴨川"], g: "四条河原町", walk: "走約 3–5 分" },
+  { k: ["下鴨神社","銀閣寺","哲學之道"], g: "出町柳", walk: "下鴨神社走約 10 分；銀閣寺建議轉公車或計程車" },
+  { k: ["春日大社","興福寺"], g: "近鉄奈良", walk: "走約 5–25 分" },
+  { k: ["甲子園"], g: "甲子園", walk: "走約 3 分" }
+];
+const TW2JP = { "齋":"斎","國":"国","條":"条","稻":"稲","關":"関","戶":"戸","惠":"恵","濱":"浜","櫻":"桜","廣":"広","邊":"辺","東":"東","園":"園","鐵":"鉄","廳":"庁","變":"変","驛":"駅","觀":"観","澤":"沢","號":"号","邊":"辺","塚":"塚","團":"団","與":"与","豐":"豊","鳥":"鳥","戸":"戸" };
+function norm(s) {
+  return String(s || "").trim().toLowerCase().replace(/[\s　・·]/g, "")
+    .replace(/./g, ch => TW2JP[ch] || ch)
+    .replace(/(駅|站|車站|地鐵|地下鉄)$/,"");
+}
+const GROUP_KEYS = [...GROUPS.keys()];
+function localResolve(text) {
+  const q = norm(text); if (!q) return null;
+  // 1) curated places
+  let best = null;
+  for (const p of PLACES) for (const k of p.k) {
+    const nk = norm(k);
+    if (q === nk || q.includes(nk) || (nk.includes(q) && q.length >= 2)) {
+      const score = (q === nk ? 100 : 0) + nk.length;
+      if (!best || score > best.score) best = { score, g: p.g, walk: p.walk, label: text };
+    }
+  }
+  // 2) station names
+  for (const id in NODES) {
+    const nm = norm(NODES[id].name), g = NODES[id].g;
+    if (q === nm || q === norm(g)) return { g, walk: "", label: text, exact: true };
+    if (q.includes(nm) && nm.length >= 2) {
+      const score = 50 + nm.length;
+      if (!best || score > best.score) best = { score, g, walk: "", label: text };
+    }
+  }
+  return best;
+}
+async function resolvePlace(text) {
+  return localResolve(text);
+}
+function placeLine(role, r) {
+  const st = esc(groupName(r.g));
+  return `<div class="pl"><span class="plr">${role}</span><span>${esc(r.label)} → 最近的站：<b>${st}</b>${r.walk ? `（${esc(r.walk)}）` : ""}</span></div>`;
+}
+function groupName(g) {
+  const ids = GROUPS.get(g) || [];
+  const names = [...new Set(ids.map(i => NODES[i].name))];
+  return names.includes(g) ? g : (names[0] || g);
+}
+async function runAsk() {
+  const a = $("#qFrom").value, b = $("#qTo").value, out = $("#qOut");
+  if (!a.trim() || !b.trim()) { out.innerHTML = `<div class="note">兩格都要填：你現在在哪裡、要去哪裡。</div>`; return; }
+  out.innerHTML = `<div class="note">查詢中…</div>`;
+  $("#qGo").disabled = true;
+  try {
+    const [ra, rb] = await Promise.all([resolvePlace(a), resolvePlace(b)]);
+    const err = (ra && ra.error) || (rb && rb.error);
+    if (err) { out.innerHTML = `<div class="note warn">${esc(err)}</div>`; return; }
+    if (!ra || !rb) {
+      const miss = !ra ? a : b;
+      out.innerHTML = `<div class="note warn">找不到「${esc(miss)}」。試試輸入站名，或附近的景點、商場名稱；清單外的地方可以改用網頁版請 Claude 幫忙找。</div>`;
+      return;
+    }
+    let html = placeLine("出發", ra) + placeLine("目的地", rb);
+    if (ra.g === rb.g) html += `<div class="note">這兩個地方離同一站最近，用走的就可以。</div>`;
+    else html += `<div class="note">從 <b>${esc(groupName(ra.g))}</b> 搭到 <b>${esc(groupName(rb.g))}</b>，詳細搭法在下面。</div>`;
+    out.innerHTML = html;
+    if (ra.g !== rb.g) { setSel("#selFrom", ra.g); setSel("#selTo", rb.g); renderRoute(); $("#picker").scrollIntoView({ behavior: "smooth", block: "start" }); }
+  } finally { $("#qGo").disabled = false; }
+}
+function initAsk() {
+  $("#placeList").innerHTML = [...new Set(PLACES.map(p => p.k[0]))].map(k => `<option value="${esc(k)}"></option>`).join("");
+  $("#qGo").addEventListener("click", runAsk);
+  $("#qForm").addEventListener("submit", e => { e.preventDefault(); runAsk(); });
+  $("#qHotel").addEventListener("click", () => { $("#qFrom").value = "飯店"; $("#qTo").focus(); });
+  $("#qSwap").addEventListener("click", () => { const t = $("#qFrom").value; $("#qFrom").value = $("#qTo").value; $("#qTo").value = t; });
+}
+
+/* ----- transfers & signs ----- */
+function initStatic() {
+  $("#vocab").innerHTML = VOCAB.map(v => `<div class="card"><div class="jp">${v[0]}</div><div class="rd">${v[1]}</div><div class="mn">${v[2]}</div></div>`).join("");
+  $("#types").innerHTML = TYPES.map(v => `<div class="card"><h3><span class="kw">${v[0]}</span></h3><div class="mn">${v[1]}</div></div>`).join("");
+  $("#ic").innerHTML = IC.map(v => `<div class="card"><div class="mn">${v}</div></div>`).join("");
+}
+
+/* ----- routing ----- */
+const VIEWS = ["trip", "line", "signs"];
+function show() {
+  const h = location.hash.slice(1);
+  const v = VIEWS.includes(h) ? h : "trip";
+  document.querySelectorAll("section[data-view]").forEach(s => s.classList.toggle("on", s.dataset.view === v));
+  document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-current", t.dataset.go === v ? "page" : "false"));
+}
+document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => { location.hash = t.dataset.go; window.scrollTo(0, 0); }));
+window.addEventListener("hashchange", show);
+
+(function start() {
+  const now = new Date();
+  const key = String(now.getMonth() + 1) + String(now.getDate()).padStart(2, "0");
+  const today = DAYS.find(d => d.id === key);
+  initLine(); initAsk(); initStatic();
+  pickDay(today ? today.id : (store.get("metro-day") || DAYS[0].id));
+  show();
+})();
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => { navigator.serviceWorker.register("service-worker.js").catch(() => {}); });
+}
+</script>
+</body>
+</html>
