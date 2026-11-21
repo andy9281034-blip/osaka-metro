@@ -184,11 +184,20 @@ h2 { font-family: var(--display); font-size: 17px; margin: 18px 0 10px; text-wra
 
 
 .mini.loc { border-color: var(--accent); color: var(--accent); font-weight: 700; }
-.near { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; align-items: center; width: 100%; text-align: left; font: inherit; background: var(--paper); color: var(--ink); border: 1.5px solid var(--rule); border-radius: 10px; padding: 8px 10px; cursor: pointer; }
+.near { display: grid; gap: 4px; background: var(--paper); border: 1.5px solid var(--rule); border-radius: 10px; padding: 8px 10px; }
+.near-top { display: flex; align-items: center; gap: 8px; }
+.near-top .near-l { margin-left: auto; }
+.near-act { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 2px; }
+.walk-btn, .set-btn { display: flex; align-items: center; justify-content: center; font: inherit; font-size: 13.5px; font-weight: 700; border-radius: 9px; padding: 8px 6px; text-decoration: none; cursor: pointer; }
+.walk-btn { background: #2b7de9; color: #fff; border: 0; }
+.set-btn { background: var(--surface); color: var(--ink); border: 1.5px solid var(--rule); }
+.walk-btn:focus-visible, .set-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.minimap { height: 230px; border-radius: 12px; overflow: hidden; border: 1.5px solid var(--rule); background: var(--paper); z-index: 0; }
+.mpin { width: 26px; height: 26px; border-radius: 50%; background: var(--accent, #e5171f); color: #fff; font-family: var(--num); font-weight: 700; font-size: 15px; display: flex; align-items: center; justify-content: center; border: 2.5px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.35); }
+.mpin.sm { width: 22px; height: 22px; font-size: 13px; border-width: 2px; flex: 0 0 auto; }
 .near-n { font-family: var(--display); font-weight: 700; font-size: 16px; }
 .near-l { display: flex; gap: 3px; flex-wrap: wrap; justify-content: flex-end; }
 .near-d { grid-column: 1 / -1; font-size: 12.5px; color: var(--muted); }
-.near:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
 /* tab bar */
 nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; background: var(--surface); border-top: 1px solid var(--rule); display: flex; justify-content: center; padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); z-index: 5; }
@@ -643,7 +652,7 @@ function nearestGroups(pos, n) {
   NODES.forEach((nd, id) => {
     const c = COORD[`${NET[nd.li].id}:${nd.name}`]; if (!c) return;
     const d = distM(pos, c), cur = best.get(nd.g);
-    if (!cur || d < cur.d) best.set(nd.g, { g: nd.g, d, name: nd.name });
+    if (!cur || d < cur.d) best.set(nd.g, { g: nd.g, d, name: nd.name, c });
   });
   return [...best.values()].sort((a, b) => a.d - b.d).slice(0, n);
 }
@@ -652,6 +661,51 @@ function groupLines(g) {
   const seen = new Map();
   for (const id of GROUPS.get(g)) { const L = NET[NODES[id].li]; seen.set(L.short + L.c, L); }
   return [...seen.values()].map(L => `<span class="dot" style="--c:${L.c}">${L.short}</span>`).join("");
+}
+function cityHint(c) {
+  if (c[0] > 34.9) return "京都";
+  if (c[1] < 135.36) return "神戸";
+  if (c[1] > 135.65 && c[0] < 34.75) return "奈良";
+  return "大阪";
+}
+function walkLink(pos, x) {
+  const dest = `${x.name}駅 ${cityHint(x.c)}`;
+  return `https://www.google.com/maps/dir/?api=1&origin=${pos[0]},${pos[1]}&destination=${encodeURIComponent(dest)}&travelmode=walking`;
+}
+let leafletP = null, miniMap = null;
+function loadLeaflet() {
+  if (window.L && window.L.map) return Promise.resolve(window.L);
+  if (leafletP) return leafletP;
+  leafletP = new Promise((ok, bad) => {
+    const css = document.createElement("link");
+    css.rel = "stylesheet"; css.href = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css";
+    document.head.appendChild(css);
+    const s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";
+    s.onload = () => ok(window.L); s.onerror = () => { leafletP = null; bad(new Error("leaflet")); };
+    document.head.appendChild(s);
+  });
+  return leafletP;
+}
+function drawMap(pos, acc, list) {
+  loadLeaflet().then(Lf => {
+    if (miniMap) { miniMap.remove(); miniMap = null; }
+    const el = document.getElementById("miniMap"); if (!el) return;
+    miniMap = Lf.map(el, { zoomControl: true, attributionControl: true });
+    Lf.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "&copy; OpenStreetMap" }).addTo(miniMap);
+    Lf.circle(pos, { radius: Math.max(acc, 15), color: "#2b7de9", weight: 1, fillOpacity: .12 }).addTo(miniMap);
+    Lf.circleMarker(pos, { radius: 8, color: "#fff", weight: 3, fillColor: "#2b7de9", fillOpacity: 1 }).addTo(miniMap).bindPopup("你在這裡");
+    const pts = [pos];
+    list.forEach((x, i) => {
+      const icon = Lf.divIcon({ className: "", html: `<div class="mpin">${i + 1}</div>`, iconSize: [26, 26], iconAnchor: [13, 13] });
+      Lf.marker(x.c, { icon }).addTo(miniMap).bindPopup(`<b>${esc(groupName(x.g))}</b><br>${fmtDist(x.d)}<br><a href="${walkLink(pos, x)}" target="_blank" rel="noopener">🚶 帶我走過去</a>`);
+      pts.push(x.c);
+    });
+    miniMap.fitBounds(pts, { padding: [28, 28], maxZoom: 17 });
+  }).catch(() => {
+    const el = document.getElementById("miniMap");
+    if (el) el.outerHTML = `<div class="note">現在沒有網路，地圖無法顯示；下面的車站和步行導航按鈕一樣能用（導航需要網路）。</div>`;
+  });
 }
 function locate() {
   const out = $("#qOut");
@@ -662,11 +716,15 @@ function locate() {
     const list = nearestGroups(pos, 3);
     const far = list[0] && list[0].d > 3000;
     out.innerHTML = `<div class="ask-title" style="font-size:14.5px">離你最近的車站</div>
-      ${list.map(x => `<button type="button" class="near" data-g="${esc(x.g)}">
-        <span class="near-n">${esc(groupName(x.g))}</span><span class="near-l">${groupLines(x.g)}</span>
-        <span class="near-d">${fmtDist(x.d)}・走約 ${Math.max(1, Math.round(x.d * 1.3 / 80))} 分</span></button>`).join("")}
-      <div class="note">點一站當作出發站。定位誤差約 ${acc} 公尺，距離是直線距離，實際走路會再遠一點。</div>
+      <div id="miniMap" class="minimap" role="img" aria-label="你的位置和最近的三個車站"></div>
+      ${list.map((x, i) => `<div class="near">
+        <div class="near-top"><span class="mpin sm">${i + 1}</span><span class="near-n">${esc(groupName(x.g))}</span><span class="near-l">${groupLines(x.g)}</span></div>
+        <div class="near-d">${fmtDist(x.d)}・走約 ${Math.max(1, Math.round(x.d * 1.3 / 80))} 分</div>
+        <div class="near-act"><a class="walk-btn" href="${walkLink(pos, x)}" target="_blank" rel="noopener">🚶 帶我走過去</a><button type="button" class="set-btn" data-g="${esc(x.g)}">設為出發站</button></div>
+      </div>`).join("")}
+      <div class="note">「帶我走過去」會打開 Google 地圖的步行導航（需要網路）。定位誤差約 ${acc} 公尺，距離是直線距離。</div>
       ${far ? `<div class="note warn">你離最近的車站超過 3 公里，可能不在這個 App 的路線範圍內。</div>` : ""}`;
+    drawMap(pos, acc, list);
   }, err => {
     const msg = err.code === 1
       ? "沒有取得定位權限。iPhone 請到「設定 → 隱私權與安全性 → 定位服務 → Safari 網站」改成「使用 App 期間」，再回來按一次「📍 定位」。"
@@ -795,7 +853,7 @@ function initAsk() {
   $("#qForm").addEventListener("submit", e => { e.preventDefault(); runAsk(); });
   $("#qLoc").addEventListener("click", locate);
   $("#qOut").addEventListener("click", e => {
-    const b = e.target.closest(".near"); if (!b) return;
+    const b = e.target.closest(".set-btn"); if (!b) return;
     $("#qFrom").value = groupName(b.dataset.g);
     if ($("#qTo").value.trim()) runAsk(); else { $("#qOut").innerHTML = `<div class="note">出發站設為 <b>${esc(groupName(b.dataset.g))}</b>，再輸入你要去哪裡。</div>`; $("#qTo").focus(); }
   });
