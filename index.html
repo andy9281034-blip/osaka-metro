@@ -153,6 +153,10 @@ h2 { font-family: var(--display); font-size: 17px; margin: 18px 0 10px; text-wra
 .xhead { font-weight: 700; }
 .xroute { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .xtip { color: var(--muted); }
+.xplat { margin: 4px 0 2px; font-size: 14px; }
+.xplat b { color: var(--ink, #111); font-size: 16px; }
+.signbox .plat { background: #fff; color: #111; border-radius: 6px; padding: 1px 8px; font-size: 18px; line-height: 1.3; }
+.signbox .plat small { font-size: 11px; opacity: .7; margin-left: 2px; }
 .path { list-style: none; margin: 2px 0 0; padding: 0; position: relative; }
 .path::before { content: ""; position: absolute; left: 7px; top: 12px; bottom: 12px; width: 5px; background: var(--c); border-radius: 3px; }
 .path li { position: relative; padding: 3px 0 3px 26px; font-size: 14px; display: flex; align-items: center; gap: 6px; }
@@ -244,6 +248,13 @@ h2 { font-family: var(--display); font-size: 17px; margin: 18px 0 10px; text-wra
 .live-sel select { flex: 1; min-width: 0; font: inherit; font-size: 14px; padding: 5px 6px; border-radius: 8px; border: 1.5px solid var(--rule); background: var(--paper); color: var(--ink); }
 .trip-start:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
+
+.where-msg { background: #fffbd1; color: #1b1c1f; border: 1.5px solid #e6cf00; border-radius: 10px; padding: 8px 10px; font-size: 14px; }
+.where-msg b { font-size: 16px; }
+.where-msg.warn { background: var(--accent-soft); color: var(--ink); border-color: var(--accent); }
+.path li.here { background: #fff35c; color: #1b1c1f !important; border-radius: 6px; box-shadow: 0 0 0 3px #fff35c; font-weight: 700; }
+.path li.here::after { content: "📍 你在這裡"; font-size: 11px; font-weight: 700; margin-left: 4px; }
+
 /* tab bar */
 nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; background: var(--surface); border-top: 1px solid var(--rule); display: flex; justify-content: center; padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); z-index: 5; }
 nav.tabs .inner { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; width: 100%; max-width: 560px; }
@@ -259,7 +270,6 @@ nav.tabs .inner { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px
     <h1>大阪地鐵隨身指南</h1>
     <div class="home"><span class="roundel sm"><b>M</b><span>21</span></span>住大國町</div>
   </header>
-  <div id="live" class="live" hidden aria-live="polite"></div>
 
   <section data-view="trip" id="v-trip">
     <div class="days" id="days" role="group" aria-label="選擇日期"></div>
@@ -685,7 +695,7 @@ const ARRIVE = {
   "M:大国町": "出站走約 3 分到飯店。",
   "Y:大国町": "出站走約 3 分到飯店。",
   "M:箕面萱野": "去勝尾寺：北改札出站，右手邊手扶梯下到 1 樓，8 號乘車處搭阪急巴士 30 系統（約 25 分，¥800）。",
-  "KH:伏見稲荷": "出站走約 5 分到伏見稻荷大社。",
+  "KH:伏見稲荷": "出站走約 5 分到伏見稻荷大社。回程時注意：這站兩個方向的改札口是分開的。",
   "KH:清水五条": "往清水寺要走上坡約 20–25 分；走不動可以搭計程車。",
   "JRP:ユニバーサルシティ": "出站沿 CityWalk 走約 5 分到環球影城大門。",
   "NK:関西空港": "國際線出境在第 1 航廈 4 樓；先辦退稅，再託運行李。",
@@ -693,9 +703,40 @@ const ARRIVE = {
 };
 const DEPART = {
   "HKK:烏丸": "從大丸京都地下樓層直通阪急烏丸站。",
+  "KH:伏見稲荷": "這站兩個方向的改札口是分開的：往清水五条、祇園要走「三条・出町柳方面」改札（1 號月台）；進錯邊要出站重刷。",
   "NK:関西空港": "入境後跟著「Railways／南海」指標走；第 2 航廈先搭接駁巴士到第 1 航廈。",
   "JRP:ユニバーサルシティ": "閉園後車站很擠，進站可能要排隊。"
 };
+/* Platform numbers. d0 = toward the start of the line's station list, d1 = toward its end
+   (loop line: d1 = 内回り, d0 = 外回り). Sources: operators' station pages, JR おでかけネット, Keihan 乗車位置案内. */
+const PLAT = {
+  "M:大国町": { d0: "4", d1: "1" }, "Y:大国町": { d0: "3", d1: "2" },
+  "M:箕面萱野": { d1: "1・2" }, "Y:西梅田": { d1: "1・2" }, "Y:北加賀屋": { d0: "2・3", d1: "1" },
+  "NK:関西空港": { d0: "1・2" }, "NK:新今宮": { d0: "4", d1: "3" },
+  "JRO:新今宮": { d0: "4", d1: "1" }, "JRO:西九条": { d0: "1（有時 2）", d1: "4" }, "JRO:大阪": { d0: "2", d1: "1" },
+  "JRP:西九条": { d1: "3（有時 2 或 4）" }, "JRP:ユニバーサルシティ": { d0: "1", d1: "2" },
+  "JRA:新大阪": { d0: "5・6", d1: "7・8" },
+  "HKK:烏丸": { d0: "2", d1: "1" },
+  "HSM:元町": { d0: "1" }, "HSM:尼崎": { d0: "1・2", d1: "5・6" }, "HSN:尼崎": { d1: "3" }
+};
+/* Keihan: 1 = 出町柳 side, 2 = 淀屋橋 side, except these stations. */
+const KH_PLAT = { "淀屋橋": { d1: "1〜4" }, "天満橋": { d0: "4", d1: "1・3" }, "京橋": { d0: "3・4", d1: "1・2" }, "守口市": { d0: "3・4", d1: "1・2" },
+  "萱島": { d0: "3・4", d1: "1・2" }, "香里園": { d0: "3・4", d1: "1・2" }, "枚方市": { d0: "3・4", d1: "1・2" }, "樟葉": { d0: "3・4", d1: "1・2" },
+  "淀": { d0: "3・4", d1: "1・2" }, "丹波橋": { d0: "3・4", d1: "1・2" }, "龍谷大前深草": { d0: "3・4", d1: "1・2" },
+  "三条": { d0: "3・4", d1: "1・2" }, "出町柳": { d0: "1・2" } };
+/* Osaka Metro M/Y/S/K: platform 1 = toward higher station numbers (end of list), 2 = the other way.
+   Not applied at terminals, Kita-Kyu stations and stations with extra tracks. */
+const METRO_RULE = { M: 5, Y: 0, S: 0, K: 0 };
+const METRO_SKIP = ["M:江坂", "M:新大阪", "M:中津", "M:梅田", "M:天王寺", "M:あびこ", "M:なかもず", "Y:住之江公園", "S:野田阪神", "S:南巽", "K:天神橋筋六丁目", "K:天下茶屋"];
+function platFor(fromId, nextId) {
+  const A = NODES[fromId], B = NODES[nextId], L = NET[A.li], N = L.st.length;
+  const fwd = L.loop ? (B.si - A.si + N) % N === 1 : B.si > A.si;
+  const k = fwd ? "d1" : "d0", key = `${L.id}:${A.name}`;
+  if (PLAT[key]) return PLAT[key][k] || null;
+  if (L.id === "KH") { const o = KH_PLAT[A.name]; if (o) return o[k] || null; if (A.si === 0 || A.si === N - 1) return null; return fwd ? "1" : "2"; }
+  if (L.id in METRO_RULE && !METRO_SKIP.includes(key) && A.si >= METRO_RULE[L.id] && A.si > 0 && A.si < N - 1) return fwd ? "1" : "2";
+  return null;
+}
 const nkey = id => `${NET[NODES[id].li].id}:${NODES[id].name}`;
 function signName(L) { if (L.metro) return `地下鉄 ${L.name}`; if (L.short === "JR") return "JR線"; return `${L.short}線`; }
 function initLine() {
@@ -714,6 +755,8 @@ function setSel(sel, g) {
 function renderRoute() {
   const fromG = $("#selFrom").value, toG = $("#selTo").value, r = $("#result");
   if (fromG === toG) { r.innerHTML = `<div class="note">起點和終點一樣，換一站看看。</div>`; return; }
+  const sig = fromG + ">" + toG;
+  if (here && here.sig !== sig) here = null;
   const steps = findRoute(fromG, toG);
   if (!steps) { r.innerHTML = `<div class="note">找不到路線。</div>`; return; }
   for (const s of steps) if (s.kind === "ride") {
@@ -725,12 +768,17 @@ function renderRoute() {
   const first = steps[0].from, last = steps[steps.length - 1].to;
   const parts = [];
   if (DEPART[nkey(first)]) parts.push(`<div class="tipbox">出發：${esc(DEPART[nkey(first)])}</div>`);
-  for (const s of steps) {
+  let legNo = -1;
+  for (let si = 0; si < steps.length; si++) {
+    const s = steps[si];
+    if (s.kind === "ride") legNo++;
     if (s.kind === "walk") {
       const A = NODES[s.from], B = NODES[s.to], LB = NET[B.li];
+      const nx = steps[si + 1], np = nx && nx.kind === "ride" ? platFor(nx.from, nx.second) : null;
       const tip = TIP[nkey(s.to)] || `出改札後，跟著「${signName(LB)}」指標走。`;
       parts.push(`<div class="xfer"><div class="xhead">🔁 轉乘・走約 ${Math.round(s.min)} 分</div>
         <div class="xroute">${esc(A.name)} → ${lineBadge(LB, true)} ${esc(LB.name)}「${esc(B.name)}」</div>
+        ${np ? `<div class="xplat">🚉 到 <b>${esc(np)} 號月台</b>（${esc(dirText(nx).sign)}）</div>` : ""}
         <div class="xtip">${esc(tip)}</div></div>`);
       continue;
     }
@@ -743,11 +791,12 @@ function renderRoute() {
       const chgTag = adv && adv.chg === nd.name && !end ? `<span class="chgtag">${esc(adv.chgText)}</span>` : "";
       const pos = i === 0 ? " start" : i === s.path.length - 1 ? " stop" : "";
       const posTag = i === 0 ? `<span class="ontag">上車</span>` : i === s.path.length - 1 ? `<span class="offtag">下車</span>` : "";
-      return `<li class="${end ? "end" : ""}${pos}">${esc(nd.name)}${posTag}${no ? `<span class="no">${no}</span>` : ""}${skipTag}${chgTag}${nd.g === HOME_GROUP ? `<span class="pin">飯店</span>` : ""}</li>`;
+      const isHere = L.metro && here && here.sig === sig && here.leg === legNo && here.name === nd.name ? " here" : "";
+      return `<li class="${end ? "end" : ""}${pos}${isHere}">${esc(nd.name)}${posTag}${no ? `<span class="no">${no}</span>` : ""}${skipTag}${chgTag}${nd.g === HOME_GROUP ? `<span class="pin">飯店</span>` : ""}</li>`;
     }).join("");
     parts.push(`<div class="rstep" style="--c:${L.c}">
       <div class="leg-top">${lineBadge(L)}<div><div class="lname">${L.name}</div><div class="route"><span class="c-on">${esc(NODES[s.from].name)}</span><span class="arr">→</span><span class="c-off">${esc(NODES[s.to].name)}</span></div></div></div>
-      <div class="signbox">找：${esc(d.sign)}</div>
+      <div class="signbox">${(() => { const p = platFor(s.from, s.second); return p ? `<span class="plat">${esc(p)}<small>號月台</small></span>` : ""; })()}<span>找：${esc(d.sign)}</span></div>
       ${adv ? `<div class="advice${adv.warn ? " warn" : ""}">🚆 ${esc(adv.main)}${adv.sub ? `<span>${esc(adv.sub)}</span>` : ""}${s.est.alt ? `<span class="alt">${s.est.alt.map(([lab, m]) => `${esc(lab)}：約 ${Math.round(m)} 分`).join("<br>")}${s.est.alt.length > 1 && s.est.alt[1][0].includes("換") ? "（換車的時間已含等車約 4 分）" : ""}</span>` : ""}</div>` : ""}
       <div class="meta"><span class="chip">${L.metro ? `${s.n} 站` : `經過 ${s.n} 個主要站`}</span><span class="chip">約 ${Math.max(1, Math.round(s.min))} 分</span></div>
       ${d.warn ? `<div class="note warn">${esc(d.warn)}</div>` : ""}
@@ -762,9 +811,10 @@ function renderRoute() {
           const tags = (sk.includes(n) ? `<span class="skiptag">${esc(L.train)}不停</span>` : "") + (adv && adv.chg === n && !end ? `<span class="chgtag">${esc(adv.chgText)}</span>` : "");
           const pos = i === 0 ? " start" : i === seg.length - 1 ? " stop" : "";
           const posTag = i === 0 ? `<span class="ontag">上車</span>` : i === seg.length - 1 ? `<span class="offtag">下車</span>` : "";
-          return `<li class="${end ? "end" : mainSet.has(n) ? "major" : "minor"}${pos}">${esc(n)}${posTag}${tags}</li>`;
+          const isHere = here && here.sig === sig && here.leg === legNo && here.name === n ? " here" : "";
+          return `<li class="${end ? "end" : mainSet.has(n) ? "major" : "minor"}${pos}${isHere}">${esc(n)}${posTag}${tags}</li>`;
         }).join("");
-        return `<details class="allst"><summary>顯示完整經過站（共 ${seg.length - 1} 站）</summary>
+        return `<details class="allst"${here && here.sig === sig && here.leg === legNo ? " open" : ""}><summary>顯示完整經過站（共 ${seg.length - 1} 站）</summary>
           <div class="note">粗體是「${esc(L.train)}」會停的站；細字是「${esc(L.train)}」不停、只有較慢的車才停的站。</div>
           <ol class="path full">${items}</ol></details>`;
       })()}
@@ -773,12 +823,14 @@ function renderRoute() {
   if (ARRIVE[nkey(last)]) parts.push(`<div class="tipbox">到站：${esc(ARRIVE[nkey(last)])}</div>`);
   lastSteps = steps;
   r.innerHTML = `<div class="big">約<span class="n">${total}</span>分・轉乘<span class="n">${xfers}</span>次</div>
-    <div class="note">不含等車時間；票價以刷卡扣款為準。</div>
-    <button type="button" class="trip-start" id="tripStart">🚃 上車了，開始這趟</button>
-    <div class="note">按下後就算關掉 App 也沒關係，之後隨時打開，最上面會顯示你大約到哪一站、還有幾站、多久下車。</div>${parts.join("")}`;
+    <div class="note">不含等車時間；票價以刷卡扣款為準。月台號碼偶爾會臨時變更，以月台上的電子看板為準。</div>
+    <button type="button" class="trip-start" id="whereNow">📍 我現在到哪一站？</button>
+    ${here && here.sig === sig && here.msg ? `<div class="where-msg${here.warn ? " warn" : ""}">${here.msg}</div>` : ""}${parts.join("")}`;
+  const hl = r.querySelector("li.here");
+  if (hl && here && here.scroll) { here.scroll = false; hl.scrollIntoView({ behavior: "smooth", block: "center" }); }
 }
 
-const COORD = {"M:箕面萱野":[34.83961,135.49814],"M:箕面船場阪大前":[34.8227,135.4979],"M:千里中央":[34.807,135.4956],"M:桃山台":[34.7914,135.4954],"M:緑地公園":[34.7766,135.4959],"M:江坂":[34.7581,135.4973],"M:東三国":[34.7457,135.4993],"M:新大阪":[34.7338,135.5003],"M:西中島南方":[34.7259,135.4989],"M:中津":[34.711028,135.4969111],"M:梅田":[34.702833,135.497722],"M:淀屋橋":[34.69235,135.5009944],"M:本町":[34.6819361,135.4989833],"M:心斎橋":[34.6751,135.5007],"M:なんば":[34.6663167,135.5003139],"M:大国町":[34.6560722,135.4978028],"M:動物園前":[34.6488139,135.5044111],"M:天王寺":[34.6465528,135.5137611],"M:昭和町":[34.635,135.5168],"M:西田辺":[34.6252,135.5147],"M:長居":[34.6129,135.5143],"M:あびこ":[34.6001,135.5137],"M:北花田":[34.5843,135.512],"M:新金岡":[34.571,135.5104],"M:なかもず":[34.5559,135.503],"T:大日":[34.7395,135.5639],"T:守口":[34.7319,135.5627],"T:太子橋今市":[34.7233,135.5525],"T:千林大宮":[34.7175,135.5428],"T:関目高殿":[34.7117,135.5379],"T:野江内代":[34.7067,135.5292],"T:都島":[34.7064,135.5226],"T:天神橋筋六丁目":[34.7108,135.5115],"T:中崎町":[34.7066,135.5049],"T:東梅田":[34.7009778,135.499556],"T:南森町":[34.6979,135.5114],"T:天満橋":[34.6901972,135.5166306],"T:谷町四丁目":[34.6827,135.5175],"T:谷町六丁目":[34.6745,135.5172],"T:谷町九丁目":[34.6658,135.5167],"T:四天王寺前夕陽ヶ丘":[34.6557,135.5148],"T:天王寺":[34.6474639,135.513167],"T:阿倍野":[34.6402,135.5129],"T:文の里":[34.6313,135.5185],"T:田辺":[34.6237,135.5245],"T:駒川中野":[34.6232,135.5357],"T:平野":[34.62111,135.54889],"T:喜連瓜破":[34.6125,135.5604],"T:出戸":[34.6066,135.5658],"T:長原":[34.602453,135.573751],"T:八尾南":[34.5933,135.5823],"Y:西梅田":[34.6996056,135.495667],"Y:肥後橋":[34.691351,135.496388],"Y:本町":[34.6819361,135.4989833],"Y:四ツ橋":[34.6740351,135.496782],"Y:なんば":[34.665389,135.497925],"Y:大国町":[34.6560722,135.4978028],"Y:花園町":[34.6458,135.4951],"Y:岸里":[34.6383,135.4917],"Y:玉出":[34.6264,135.4885],"Y:北加賀屋":[34.6167,135.4835],"Y:住之江公園":[34.6095,135.479],"C:夢洲":[34.6493,135.3954],"C:コスモスクエア":[34.6435,135.4141],"C:大阪港":[34.655,135.4423],"C:朝潮橋":[34.6625,135.452],"C:弁天町":[34.6694,135.4618],"C:九条":[34.6749,135.4749],"C:阿波座":[34.681444,135.486361],"C:本町":[34.6819361,135.4989833],"C:堺筋本町":[34.6822,135.5067],"C:谷町四丁目":[34.6827,135.5175],"C:森ノ宮":[34.6806,135.5333],"C:緑橋":[34.6786,135.5446],"C:深江橋":[34.6782,135.5558],"C:高井田":[34.6788,135.573],"C:長田":[34.6787639,135.5919111],"S:野田阪神":[34.6935,135.4766],"S:玉川":[34.6888,135.479],"S:阿波座":[34.681444,135.486361],"S:西長堀":[34.6755,135.4871],"S:桜川":[34.668,135.4887],"S:なんば":[34.6671361,135.5002861],"S:日本橋":[34.6669944,135.5061333],"S:谷町九丁目":[34.6658,135.5167],"S:鶴橋":[34.6660111,135.5298639],"S:今里":[34.6659,135.5437],"S:新深江":[34.665,135.5563],"S:小路":[34.6584,135.5652],"S:北巽":[34.6503,135.5645],"S:南巽":[34.6419,135.5622],"K:天神橋筋六丁目":[34.7108,135.5115],"K:扇町":[34.7038083,135.51083],"K:南森町":[34.6979,135.5114],"K:北浜":[34.6915861,135.5066167],"K:堺筋本町":[34.6822,135.5067],"K:長堀橋":[34.674,135.5066],"K:日本橋":[34.6669944,135.5061333],"K:恵美須町":[34.6562444,135.505639],"K:動物園前":[34.6488139,135.5044111],"K:天下茶屋":[34.637194,135.49675],"N:大正":[34.6663,135.48],"N:ドーム前千代崎":[34.6699,135.4786],"N:西長堀":[34.6755,135.4871],"N:西大橋":[34.6752,135.4932],"N:心斎橋":[34.6749,135.5011],"N:長堀橋":[34.674,135.5066],"N:松屋町":[34.6747,135.5114],"N:谷町六丁目":[34.6745,135.5172],"N:玉造":[34.6729,135.534],"N:森ノ宮":[34.6815,135.533],"N:大阪ビジネスパーク":[34.6923,135.5333],"N:京橋":[34.6967167,135.5298111],"N:蒲生四丁目":[34.6977,135.545],"N:今福鶴見":[34.6994,135.5578],"N:横堤":[34.7022,135.5691],"N:鶴見緑地":[34.7082,135.5781],"N:門真南":[34.7069,135.5917],"I:井高野":[34.76,135.54722],"I:瑞光四丁目":[34.7509,135.5455],"I:だいどう豊里":[34.7413,135.5442],"I:太子橋今市":[34.7233,135.5525],"I:清水":[34.7154,135.5554],"I:新森古市":[34.7081,135.5548],"I:関目成育":[34.7019,135.5482],"I:蒲生四丁目":[34.6977,135.545],"I:鴫野":[34.6886,135.5466],"I:緑橋":[34.6786,135.5446],"I:今里":[34.6659,135.5437],"P:コスモスクエア":[34.6435,135.4141],"P:トレードセンター前":[34.6378,135.417],"P:中ふ頭":[34.6327,135.4232],"P:ポートタウン西":[34.6278,135.4314],"P:ポートタウン東":[34.6266,135.4368],"P:フェリーターミナル":[34.6221,135.4379],"P:南港東":[34.6178,135.4426],"P:南港口":[34.61385,135.446],"P:平林":[34.6136,135.46],"P:住之江公園":[34.6095,135.479],"JRO:大阪":[34.701889,135.494972],"JRO:福島":[34.697139,135.486583],"JRO:野田":[34.6889806,135.4748583],"JRO:西九条":[34.6826639,135.4667889],"JRO:弁天町":[34.6696972,135.4622306],"JRO:大正":[34.6655194,135.479975],"JRO:芦原橋":[34.6592056,135.4889],"JRO:今宮":[34.6541778,135.4930417],"JRO:新今宮":[34.650167,135.500694],"JRO:天王寺":[34.6473222,135.5139389],"JRO:寺田町":[34.6478778,135.5233694],"JRO:桃谷":[34.65855,135.5278917],"JRO:鶴橋":[34.6652472,135.529925],"JRO:玉造":[34.673525,135.5328278],"JRO:森ノ宮":[34.6811,135.5338444],"JRO:大阪城公園":[34.6885778,135.5344806],"JRO:京橋":[34.6959972,135.5347],"JRO:桜ノ宮":[34.7049194,135.5203278],"JRO:天満":[34.7049333,135.5121361],"JRP:西九条":[34.6826639,135.4667889],"JRP:安治川口":[34.6738222,135.4441],"JRP:ユニバーサルシティ":[34.6678417,135.4385944],"JRP:桜島":[34.6619361,135.432167],"JRA:京都":[34.9854583,135.7577556],"JRA:高槻":[34.8517139,135.6176806],"JRA:新大阪":[34.7334833,135.5001139],"JRA:大阪":[34.701889,135.494972],"JRA:尼崎":[34.7316333,135.4316861],"JRA:芦屋":[34.7342417,135.3070694],"JRA:三ノ宮":[34.6948389,135.1949417],"JRA:元町":[34.6895667,135.1873722],"JRA:神戸":[34.679528,135.178025],"JRR:天王寺":[34.6473222,135.5139389],"JRR:日根野":[34.3901306,135.331],"JRR:りんくうタウン":[34.4104556,135.2998917],"JRR:関西空港":[34.4359111,135.2434917],"NK:なんば":[34.663411,135.501911],"NK:新今宮":[34.6502083,135.5002583],"NK:天下茶屋":[34.637194,135.49675],"NK:堺":[34.5816917,135.4689583],"NK:岸和田":[34.4602639,135.378083],"NK:泉佐野":[34.4112694,135.3171],"NK:りんくうタウン":[34.4104556,135.2998917],"NK:関西空港":[34.4359111,135.2434917],"HKK:大阪梅田":[34.7055139,135.4983111],"HKK:十三":[34.7198917,135.4827917],"HKK:淡路":[34.7388417,135.5164944],"HKK:茨木市":[34.816675,135.575775],"HKK:高槻市":[34.8498778,135.623111],"HKK:長岡天神":[34.92535,135.6927167],"HKK:桂":[34.9793722,135.703275],"HKK:西院":[35.0035028,135.7318944],"HKK:烏丸":[35.003667,135.7591083],"HKK:京都河原町":[35.00375,135.768722],"HKA:桂":[34.9793722,135.703275],"HKA:上桂":[34.990417,135.695917],"HKA:松尾大社":[35.0006333,135.6880167],"HKA:嵐山":[35.0102722,135.6815722],"HKB:大阪梅田":[34.7055139,135.4983111],"HKB:十三":[34.7198917,135.4827917],"HKB:西宮北口":[34.745917,135.356639],"HKB:夙川":[34.7421778,135.3280444],"HKB:岡本":[34.7291056,135.2757306],"HKB:神戸三宮":[34.6931694,135.1928806],"HSM:大阪梅田":[34.7009694,135.496444],"HSM:尼崎":[34.7186611,135.4173083],"HSM:甲子園":[34.7239083,135.3631917],"HSM:西宮":[34.7368556,135.3382417],"HSM:芦屋":[34.7280611,135.3040333],"HSM:御影":[34.7148389,135.255625],"HSM:神戸三宮":[34.6931722,135.19555],"HSM:元町":[34.68945,135.1870611],"HSN:尼崎":[34.7186611,135.4173083],"HSN:西九条":[34.6826083,135.4659222],"HSN:ドーム前":[34.6705,135.4784],"HSN:桜川":[34.668472,135.4866722],"HSN:大阪難波":[34.667114,135.499142],"HSN:近鉄日本橋":[34.6670017,135.5060854],"HSN:大阪上本町":[34.66555,135.52125],"HSN:鶴橋":[34.6653472,135.5312972],"HSN:生駒":[34.6931806,135.6980167],"HSN:大和西大寺":[34.6937833,135.7827333],"HSN:近鉄奈良":[34.6844361,135.8274194],"KH:淀屋橋":[34.69235,135.5009944],"KH:北浜":[34.6915861,135.5066167],"KH:天満橋":[34.6901972,135.5166306],"KH:京橋":[34.6970417,135.5321722],"KH:枚方市":[34.816125,135.6484194],"KH:樟葉":[34.8619889,135.6752722],"KH:中書島":[34.926881,135.760019],"KH:丹波橋":[34.9386528,135.7654056],"KH:伏見稲荷":[34.9687611,135.7693278],"KH:東福寺":[34.981194,135.770167],"KH:七条":[34.9893222,135.7678472],"KH:清水五条":[34.9961083,135.768528],"KH:祇園四条":[35.003972,135.772139],"KH:三条":[35.0091139,135.772275],"KH:出町柳":[35.0305139,135.7732972]};
+const COORD = {"M:箕面萱野":[34.83961,135.49814],"M:箕面船場阪大前":[34.8227,135.4979],"M:千里中央":[34.807,135.4956],"M:桃山台":[34.7914,135.4954],"M:緑地公園":[34.7766,135.4959],"M:江坂":[34.7581,135.4973],"M:東三国":[34.7457,135.4993],"M:新大阪":[34.7338,135.5003],"M:西中島南方":[34.7259,135.4989],"M:中津":[34.711028,135.4969111],"M:梅田":[34.702833,135.497722],"M:淀屋橋":[34.69235,135.5009944],"M:本町":[34.6819361,135.4989833],"M:心斎橋":[34.6751,135.5007],"M:なんば":[34.6663167,135.5003139],"M:大国町":[34.6560722,135.4978028],"M:動物園前":[34.6488139,135.5044111],"M:天王寺":[34.6465528,135.5137611],"M:昭和町":[34.635,135.5168],"M:西田辺":[34.6252,135.5147],"M:長居":[34.6129,135.5143],"M:あびこ":[34.6001,135.5137],"M:北花田":[34.5843,135.512],"M:新金岡":[34.571,135.5104],"M:なかもず":[34.5559,135.503],"T:大日":[34.7395,135.5639],"T:守口":[34.7319,135.5627],"T:太子橋今市":[34.7233,135.5525],"T:千林大宮":[34.7175,135.5428],"T:関目高殿":[34.7117,135.5379],"T:野江内代":[34.7067,135.5292],"T:都島":[34.7064,135.5226],"T:天神橋筋六丁目":[34.7108,135.5115],"T:中崎町":[34.7066,135.5049],"T:東梅田":[34.7009778,135.499556],"T:南森町":[34.6979,135.5114],"T:天満橋":[34.6901972,135.5166306],"T:谷町四丁目":[34.6827,135.5175],"T:谷町六丁目":[34.6745,135.5172],"T:谷町九丁目":[34.6658,135.5167],"T:四天王寺前夕陽ヶ丘":[34.6557,135.5148],"T:天王寺":[34.6474639,135.513167],"T:阿倍野":[34.6402,135.5129],"T:文の里":[34.6313,135.5185],"T:田辺":[34.6237,135.5245],"T:駒川中野":[34.6232,135.5357],"T:平野":[34.62111,135.54889],"T:喜連瓜破":[34.6125,135.5604],"T:出戸":[34.6066,135.5658],"T:長原":[34.602453,135.573751],"T:八尾南":[34.5933,135.5823],"Y:西梅田":[34.6996056,135.495667],"Y:肥後橋":[34.691351,135.496388],"Y:本町":[34.6819361,135.4989833],"Y:四ツ橋":[34.6740351,135.496782],"Y:なんば":[34.665389,135.497925],"Y:大国町":[34.6560722,135.4978028],"Y:花園町":[34.6458,135.4951],"Y:岸里":[34.6383,135.4917],"Y:玉出":[34.6264,135.4885],"Y:北加賀屋":[34.6167,135.4835],"Y:住之江公園":[34.6095,135.479],"C:夢洲":[34.6493,135.3954],"C:コスモスクエア":[34.6435,135.4141],"C:大阪港":[34.655,135.4423],"C:朝潮橋":[34.6625,135.452],"C:弁天町":[34.6694,135.4618],"C:九条":[34.6749,135.4749],"C:阿波座":[34.681444,135.486361],"C:本町":[34.6819361,135.4989833],"C:堺筋本町":[34.6822,135.5067],"C:谷町四丁目":[34.6827,135.5175],"C:森ノ宮":[34.6806,135.5333],"C:緑橋":[34.6786,135.5446],"C:深江橋":[34.6782,135.5558],"C:高井田":[34.6788,135.573],"C:長田":[34.6787639,135.5919111],"S:野田阪神":[34.6935,135.4766],"S:玉川":[34.6888,135.479],"S:阿波座":[34.681444,135.486361],"S:西長堀":[34.6755,135.4871],"S:桜川":[34.668,135.4887],"S:なんば":[34.6671361,135.5002861],"S:日本橋":[34.6669944,135.5061333],"S:谷町九丁目":[34.6658,135.5167],"S:鶴橋":[34.6660111,135.5298639],"S:今里":[34.6659,135.5437],"S:新深江":[34.665,135.5563],"S:小路":[34.6584,135.5652],"S:北巽":[34.6503,135.5645],"S:南巽":[34.6419,135.5622],"K:天神橋筋六丁目":[34.7108,135.5115],"K:扇町":[34.7038083,135.51083],"K:南森町":[34.6979,135.5114],"K:北浜":[34.6915861,135.5066167],"K:堺筋本町":[34.6822,135.5067],"K:長堀橋":[34.674,135.5066],"K:日本橋":[34.6669944,135.5061333],"K:恵美須町":[34.6562444,135.505639],"K:動物園前":[34.6488139,135.5044111],"K:天下茶屋":[34.637194,135.49675],"N:大正":[34.6663,135.48],"N:ドーム前千代崎":[34.6699,135.4786],"N:西長堀":[34.6755,135.4871],"N:西大橋":[34.6752,135.4932],"N:心斎橋":[34.6749,135.5011],"N:長堀橋":[34.674,135.5066],"N:松屋町":[34.6747,135.5114],"N:谷町六丁目":[34.6745,135.5172],"N:玉造":[34.6729,135.534],"N:森ノ宮":[34.6815,135.533],"N:大阪ビジネスパーク":[34.6923,135.5333],"N:京橋":[34.6967167,135.5298111],"N:蒲生四丁目":[34.6977,135.545],"N:今福鶴見":[34.6994,135.5578],"N:横堤":[34.7022,135.5691],"N:鶴見緑地":[34.7082,135.5781],"N:門真南":[34.7069,135.5917],"I:井高野":[34.76,135.54722],"I:瑞光四丁目":[34.7509,135.5455],"I:だいどう豊里":[34.7413,135.5442],"I:太子橋今市":[34.7233,135.5525],"I:清水":[34.7154,135.5554],"I:新森古市":[34.7081,135.5548],"I:関目成育":[34.7019,135.5482],"I:蒲生四丁目":[34.6977,135.545],"I:鴫野":[34.6886,135.5466],"I:緑橋":[34.6786,135.5446],"I:今里":[34.6659,135.5437],"P:コスモスクエア":[34.6435,135.4141],"P:トレードセンター前":[34.6378,135.417],"P:中ふ頭":[34.6327,135.4232],"P:ポートタウン西":[34.6278,135.4314],"P:ポートタウン東":[34.6266,135.4368],"P:フェリーターミナル":[34.6221,135.4379],"P:南港東":[34.6178,135.4426],"P:南港口":[34.61385,135.446],"P:平林":[34.6136,135.46],"P:住之江公園":[34.6095,135.479],"JRO:大阪":[34.701889,135.494972],"JRO:福島":[34.697139,135.486583],"JRO:野田":[34.6889806,135.4748583],"JRO:西九条":[34.6826639,135.4667889],"JRO:弁天町":[34.6696972,135.4622306],"JRO:大正":[34.6655194,135.479975],"JRO:芦原橋":[34.6592056,135.4889],"JRO:今宮":[34.6541778,135.4930417],"JRO:新今宮":[34.650167,135.500694],"JRO:天王寺":[34.6473222,135.5139389],"JRO:寺田町":[34.6478778,135.5233694],"JRO:桃谷":[34.65855,135.5278917],"JRO:鶴橋":[34.6652472,135.529925],"JRO:玉造":[34.673525,135.5328278],"JRO:森ノ宮":[34.6811,135.5338444],"JRO:大阪城公園":[34.6885778,135.5344806],"JRO:京橋":[34.6959972,135.5347],"JRO:桜ノ宮":[34.7049194,135.5203278],"JRO:天満":[34.7049333,135.5121361],"JRP:西九条":[34.6826639,135.4667889],"JRP:安治川口":[34.6738222,135.4441],"JRP:ユニバーサルシティ":[34.6678417,135.4385944],"JRP:桜島":[34.6619361,135.432167],"JRA:京都":[34.9854583,135.7577556],"JRA:高槻":[34.8517139,135.6176806],"JRA:新大阪":[34.7334833,135.5001139],"JRA:大阪":[34.701889,135.494972],"JRA:尼崎":[34.7316333,135.4316861],"JRA:芦屋":[34.7342417,135.3070694],"JRA:三ノ宮":[34.6948389,135.1949417],"JRA:元町":[34.6895667,135.1873722],"JRA:神戸":[34.679528,135.178025],"JRR:天王寺":[34.6473222,135.5139389],"JRR:日根野":[34.3901306,135.331],"JRR:りんくうタウン":[34.4104556,135.2998917],"JRR:関西空港":[34.4359111,135.2434917],"NK:なんば":[34.663411,135.501911],"NK:新今宮":[34.6502083,135.5002583],"NK:天下茶屋":[34.637194,135.49675],"NK:堺":[34.5816917,135.4689583],"NK:岸和田":[34.4602639,135.378083],"NK:泉佐野":[34.4112694,135.3171],"NK:りんくうタウン":[34.4104556,135.2998917],"NK:関西空港":[34.4359111,135.2434917],"HKK:大阪梅田":[34.7055139,135.4983111],"HKK:十三":[34.7198917,135.4827917],"HKK:淡路":[34.7388417,135.5164944],"HKK:茨木市":[34.816675,135.575775],"HKK:高槻市":[34.8498778,135.623111],"HKK:長岡天神":[34.92535,135.6927167],"HKK:桂":[34.9793722,135.703275],"HKK:西院":[35.0035028,135.7318944],"HKK:烏丸":[35.003667,135.7591083],"HKK:京都河原町":[35.00375,135.768722],"HKA:桂":[34.9793722,135.703275],"HKA:上桂":[34.990417,135.695917],"HKA:松尾大社":[35.0006333,135.6880167],"HKA:嵐山":[35.0102722,135.6815722],"HKB:大阪梅田":[34.7055139,135.4983111],"HKB:十三":[34.7198917,135.4827917],"HKB:西宮北口":[34.745917,135.356639],"HKB:夙川":[34.7421778,135.3280444],"HKB:岡本":[34.7291056,135.2757306],"HKB:神戸三宮":[34.6931694,135.1928806],"HSM:大阪梅田":[34.7009694,135.496444],"HSM:尼崎":[34.7186611,135.4173083],"HSM:甲子園":[34.7239083,135.3631917],"HSM:西宮":[34.7368556,135.3382417],"HSM:芦屋":[34.7280611,135.3040333],"HSM:御影":[34.7148389,135.255625],"HSM:神戸三宮":[34.6931722,135.19555],"HSM:元町":[34.68945,135.1870611],"HSN:尼崎":[34.7186611,135.4173083],"HSN:西九条":[34.6826083,135.4659222],"HSN:ドーム前":[34.6705,135.4784],"HSN:桜川":[34.668472,135.4866722],"HSN:大阪難波":[34.667114,135.499142],"HSN:近鉄日本橋":[34.6670017,135.5060854],"HSN:大阪上本町":[34.66555,135.52125],"HSN:鶴橋":[34.6653472,135.5312972],"HSN:生駒":[34.6931806,135.6980167],"HSN:大和西大寺":[34.6937833,135.7827333],"HSN:近鉄奈良":[34.6844361,135.8274194],"KH:淀屋橋":[34.69235,135.5009944],"KH:北浜":[34.6915861,135.5066167],"KH:天満橋":[34.6901972,135.5166306],"KH:京橋":[34.6970417,135.5321722],"KH:枚方市":[34.816125,135.6484194],"KH:樟葉":[34.8619889,135.6752722],"KH:中書島":[34.926881,135.760019],"KH:丹波橋":[34.9386528,135.7654056],"KH:伏見稲荷":[34.9687611,135.7693278],"KH:東福寺":[34.981194,135.770167],"KH:七条":[34.9893222,135.7678472],"KH:清水五条":[34.9961083,135.768528],"KH:祇園四条":[35.003972,135.772139],"KH:三条":[35.0091139,135.772275],"KH:出町柳":[35.0305139,135.7732972],"JRA:西大路":[34.981028,135.732333],"JRA:桂川":[34.964503,135.710378],"JRA:向日町":[34.954936,135.7096],"JRA:長岡京":[34.923517,135.700697],"JRA:山崎":[34.8922,135.6798778],"JRA:島本":[34.880593,135.662728],"JRA:摂津富田":[34.837672,135.59335],"JRA:JR総持寺":[34.82861,135.57778],"JRA:茨木":[34.815745,135.562605],"JRA:千里丘":[34.791289,135.551344],"JRA:岸辺":[34.776814,135.541622],"JRA:吹田":[34.763175,135.523669],"JRA:東淀川":[34.7391577,135.503973],"JRA:塚本":[34.7125806,135.4688778],"JRA:立花":[34.737885,135.3996],"JRA:甲子園口":[34.73906,135.37439],"JRA:西宮":[34.73901,135.34878],"JRA:さくら夙川":[34.738989,135.331044],"JRA:甲南山手":[34.730583,135.292425],"JRA:摂津本山":[34.726805,135.27757],"JRA:住吉":[34.719865,135.26312],"JRA:六甲道":[34.714805,135.238405],"JRA:灘":[34.705875,135.216545],"JRR:美章園":[34.63863,135.52378],"JRR:南田辺":[34.62556,135.520875],"JRR:鶴ケ丘":[34.618025,135.5171],"JRR:長居":[34.61052,135.512515],"JRR:我孫子町":[34.60229,135.507035],"JRR:杉本町":[34.59301,135.50302],"JRR:浅香":[34.585745,135.50254],"JRR:堺市":[34.57762,135.49867],"JRR:三国ケ丘":[34.5662,135.49277],"JRR:百舌鳥":[34.55854,135.48914],"JRR:上野芝":[34.5494,135.478035],"JRR:津久野":[34.54228,135.46825],"JRR:鳳":[34.532485,135.45936],"JRR:富木":[34.52252,135.45122],"JRR:北信太":[34.51054,135.441435],"JRR:信太山":[34.50026,135.432965],"JRR:和泉府中":[34.487985,135.42387],"JRR:久米田":[34.465685,135.405495],"JRR:下松":[34.45743,135.396935],"JRR:東岸和田":[34.449325,135.385825],"JRR:東貝塚":[34.44005,135.373035],"JRR:和泉橋本":[34.4273,135.358825],"JRR:東佐野":[34.416635,135.35004],"JRR:熊取":[34.40629,135.341215],"NK:岸里玉出":[34.62866,135.496135],"NK:粉浜":[34.61809,135.49168],"NK:住吉大社":[34.612575,135.490195],"NK:住ノ江":[34.60528,135.48702],"NK:七道":[34.59219,135.48051],"NK:湊":[34.57062,135.460095],"NK:石津川":[34.55933,135.453265],"NK:諏訪ノ森":[34.55181,135.44918],"NK:浜寺公園":[34.541345,135.444685],"NK:羽衣":[34.53431,135.44172],"NK:高石":[34.521475,135.43282],"NK:北助松":[34.51452,135.42276],"NK:松ノ浜":[34.508985,135.4148],"NK:泉大津":[34.503605,135.407135],"NK:忠岡":[34.48858,135.39777],"NK:春木":[34.47763,135.392145],"NK:和泉大宮":[34.46796,135.38502],"NK:蛸地蔵":[34.45639,135.370395],"NK:貝塚":[34.445295,135.357345],"NK:二色浜":[34.432175,135.34476],"NK:鶴原":[34.42642,135.33831],"NK:井原里":[34.41937,135.330475],"HKK:南方":[34.72571,135.499295],"HKK:崇禅寺":[34.73101,135.510165],"HKK:上新庄":[34.750065,135.533015],"HKK:相川":[34.757405,135.53362],"HKK:正雀":[34.775235,135.54548],"HKK:摂津市":[34.786369,135.553684],"HKK:南茨木":[34.80219,135.56501],"HKK:総持寺":[34.827165,135.58479],"HKK:富田":[34.83516,135.59271],"HKK:上牧":[34.872035,135.6617],"HKK:水無瀬":[34.87794,135.66791],"HKK:大山崎":[34.891555,135.681625],"HKK:西山天王山":[34.912895,135.688554],"HKK:西向日":[34.93994,135.70272],"HKK:東向日":[34.953915,135.70466],"HKK:洛西口":[34.96362,135.70314],"HKK:西京極":[34.99271,135.718855],"HKK:大宮":[35.00365,135.749155],"HKB:中津":[34.709875,135.492525],"HKB:神崎川":[34.732295,135.472865],"HKB:園田":[34.751845,135.44811],"HKB:塚口":[34.75286,135.4161],"HKB:武庫之荘":[34.751655,135.39386],"HKB:芦屋川":[34.73657,135.3012],"HKB:御影":[34.72457,135.251875],"HKB:六甲":[34.719475,135.2337],"HKB:王子公園":[34.71034,135.21864],"HKB:春日野道":[34.70342,135.20608],"HSM:福島":[34.69607,135.488275],"HSM:野田":[34.6944,135.47606],"HSM:淀川":[34.696195,135.465205],"HSM:姫島":[34.70435,135.45819],"HSM:千船":[34.712255,135.44535],"HSM:杭瀬":[34.71831,135.43868],"HSM:大物":[34.71665,135.42601],"HSM:出屋敷":[34.71826,135.40461],"HSM:尼崎センタープール前":[34.71776,135.394925],"HSM:武庫川":[34.71873,135.382155],"HSM:鳴尾・武庫川女子大前":[34.71959,135.370715],"HSM:久寿川":[34.72702,135.35689],"HSM:今津":[34.73089,135.351735],"HSM:香櫨園":[34.734315,135.32889],"HSM:打出":[34.731605,135.315565],"HSM:深江":[34.72257,135.29145],"HSM:青木":[34.71698,135.28065],"HSM:魚崎":[34.71268,135.269685],"HSM:住吉":[34.713055,135.261265],"HSM:石屋川":[34.71332,135.249415],"HSM:新在家":[34.710605,135.24057],"HSM:大石":[34.707705,135.23107],"HSM:西灘":[34.705725,135.224335],"HSM:岩屋":[34.7042,135.21849],"HSM:春日野道":[34.69962,135.208165],"HSN:大物":[34.71644,135.42591],"HSN:出来島":[34.70727,135.436845],"HSN:福":[34.699825,135.442735],"HSN:伝法":[34.68927,135.45161],"HSN:千鳥橋":[34.685375,135.457765],"HSN:九条":[34.67332,135.47476],"HSN:今里":[34.664725,135.54991],"HSN:布施":[34.664085,135.56357],"HSN:河内永和":[34.664245,135.57314],"HSN:河内小阪":[34.66398,135.58132],"HSN:八戸ノ里":[34.663725,135.589415],"HSN:若江岩田":[34.66311,135.608355],"HSN:河内花園":[34.662735,135.61843],"HSN:東花園":[34.662365,135.62679],"HSN:瓢箪山":[34.66199,135.63944],"HSN:枚岡":[34.66954,135.648055],"HSN:額田":[34.675195,135.651115],"HSN:石切":[34.684245,135.65461],"HSN:東生駒":[34.692065,135.70889],"HSN:富雄":[34.694205,135.73473],"HSN:学園前":[34.697015,135.749805],"HSN:菖蒲池":[34.697925,135.761275],"HSN:新大宮":[34.685425,135.810685],"KH:野江":[34.7073,135.543335],"KH:関目":[34.712625,135.546985],"KH:森小路":[34.719455,135.55168],"KH:千林":[34.724055,135.55482],"KH:滝井":[34.7279,135.557445],"KH:土居":[34.730635,135.559785],"KH:守口市":[34.73486,135.564685],"KH:西三荘":[34.73734,135.57589],"KH:門真市":[34.7381,135.583],"KH:古川橋":[34.739645,135.590845],"KH:大和田":[34.742775,135.601985],"KH:萱島":[34.747185,135.61052],"KH:寝屋川市":[34.763405,135.62015],"KH:香里園":[34.78456,135.63094],"KH:光善寺":[34.79776,135.63017],"KH:枚方公園":[34.811625,135.639495],"KH:御殿山":[34.829165,135.653995],"KH:牧野":[34.844,135.66568],"KH:橋本":[34.882255,135.684445],"KH:石清水八幡宮":[34.884555,135.700665],"KH:淀":[34.906515,135.720996],"KH:伏見桃山":[34.932505,135.76436],"KH:墨染":[34.94817,135.769105],"KH:藤森":[34.95688,135.77022],"KH:深草":[34.964015,135.77014],"KH:鳥羽街道":[34.973975,135.77001],"KH:神宮丸太町":[35.018845,135.77224]};
 
 /* ----- nearest station by GPS ----- */
 function distM(a, b) {
@@ -1019,98 +1071,42 @@ function show() {
 document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => { location.hash = t.dataset.go; window.scrollTo(0, 0); }));
 window.addEventListener("hashchange", show);
 
-/* ----- live trip: where am I now (estimated from boarding time, refined by an on-demand GPS fix) ----- */
-let lastSteps = null, liveTimer = null;
-const TRIP_KEY = "metro-trip-v1";
-function buildTrip(steps) {
-  const pts = []; let t = 0, leg = -1; const legs = [];
-  for (const s of steps) {
-    if (s.kind === "walk") { t += s.min; continue; }
-    const L = NET[NODES[s.from].li], names = s.path.map(id => NODES[id].name);
-    // spread this ride's estimated minutes over its station gaps, in proportion to the base times
-    const gaps = []; for (let k = 0; k < names.length - 1; k++) gaps.push(rideMin(L, L.st.indexOf(names[k]), L.st.indexOf(names[k + 1])));
-    const base = gaps.reduce((a, b) => a + b, 0) || 1, scale = s.min / base;
-    leg++; legs.push({ line: L.name, c: L.c, metro: !!L.metro, from: names[0], to: names[names.length - 1], dir: dirText(s).sign });
-    names.forEach((n, k) => { if (k > 0) t += gaps[k - 1] * scale; pts.push({ n, lid: L.id, t, leg, first: k === 0, last: k === names.length - 1 }); });
-  }
-  return { pts, legs, total: t };
-}
-function saveTrip(tr) { try { localStorage.setItem(TRIP_KEY, JSON.stringify(tr)); } catch (e) {} }
-function loadTrip() { try { return JSON.parse(localStorage.getItem(TRIP_KEY) || "null"); } catch (e) { return null; } }
-function startTrip() {
+/* ----- "where am I now" on the current route: one GPS fix, nearest station on this route ----- */
+let here = null, lastSteps = null;
+function whereNow() {
   if (!lastSteps) return;
-  const b = buildTrip(lastSteps);
-  const tr = { ...b, startedAt: Date.now(), from: b.pts[0].n, to: b.pts[b.pts.length - 1].n, mode: "time", fixAt: 0 };
-  saveTrip(tr); renderLive(); window.scrollTo({ top: 0, behavior: "smooth" });
-}
-function endTrip() { try { localStorage.removeItem(TRIP_KEY); } catch (e) {} renderLive(); }
-function tripStatus(tr) {
-  const e = (Date.now() - tr.startedAt) / 60000, P = tr.pts;
-  if (e >= tr.total) return { done: true };
-  let i = 0; while (i + 1 < P.length && P[i + 1].t <= e) i++;
-  const cur = P[i], nxt = P[i + 1];
-  if (cur.last && nxt && nxt.leg !== cur.leg) return { xfer: true, at: cur, next: nxt, legNext: tr.legs[nxt.leg], mins: Math.max(1, Math.round(nxt.t - e)) };
-  const legEnd = P.findIndex((p, k) => k > i && p.leg === cur.leg && p.last);
-  const end = P[legEnd];
-  return { at: cur, next: nxt, leg: tr.legs[cur.leg], left: legEnd - i, mins: Math.max(1, Math.round(end.t - e)), end, totalMins: Math.max(1, Math.round(tr.total - e)), lastLeg: cur.leg === tr.legs.length - 1 };
-}
-function renderLive() {
-  const box = $("#live"), tr = loadTrip();
-  if (!tr) { box.hidden = true; box.innerHTML = ""; return; }
-  box.hidden = false;
-  const st = tripStatus(tr);
-  const how = tr.mode === "manual" ? "✋ 已手動校正" : tr.mode === "gps" ? `📍 已用定位校正（${new Date(tr.fixAt).toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit" })}）` : "⏱ 依上車時間推算";
-  const opts = tr.pts.map((p, k) => `<option value="${k}">${esc(p.n)}${p.first ? "（上車）" : p.last ? "（下車）" : ""}</option>`).join("");
-  let body;
-  if (st.done) {
-    body = `<div class="live-main">應該已經到達終點「${esc(tr.to)}」</div><div class="note">如果還沒到，可以在下面選你現在在哪一站。</div>`;
-  } else if (st.xfer) {
-    body = `<div class="live-main">在「${esc(st.at.n)}」轉乘中</div>
-      <div class="live-sub">接著搭 ${esc(st.legNext.line)}，找「${esc(st.legNext.dir)}」</div>`;
-  } else {
-    const alert = st.left <= 1;
-    body = `<div class="live-main">目前大約在「${esc(st.at.n)}」${st.next && !st.at.last ? `<span class="live-next">${st.leg.metro ? "下一站" : "下一個主要站"} ${esc(st.next.n)}</span>` : ""}</div>
-      <div class="live-sub${alert ? " live-alert" : ""}">${alert ? `⚠️ ${st.leg.metro ? "下一站" : "快到了：下一個主要站"}「${esc(st.end.n)}」要下車` : `還有 <b>${st.left}</b> ${st.leg.metro ? "站" : "個主要站"}到「${esc(st.end.n)}」下車・約 <b>${st.mins}</b> 分`}</div>
-      ${st.lastLeg ? "" : `<div class="note">到終點「${esc(tr.to)}」約 ${st.totalMins} 分（中間要轉乘）</div>`}`;
-  }
-  box.innerHTML = `<div class="live-head"><span>🚃 ${esc(tr.from)} → ${esc(tr.to)}</span><span class="live-how">${how}</span></div>
-    ${body}
-    <div class="live-row">
-      <button type="button" class="mini" id="liveGps">📍 用定位校正</button>
-      <label class="live-sel"><span>我現在在</span><select id="liveSet"><option value="">選站校正…</option>${opts}</select></label>
-      <button type="button" class="mini" id="liveEnd">結束</button>
-    </div>
-    <div class="note" id="liveMsg">時間是推算的，請以車內廣播和螢幕為準。</div>`;
-}
-function calibrateTo(k, mode) {
-  const tr = loadTrip(); if (!tr) return;
-  tr.startedAt = Date.now() - tr.pts[k].t * 60000; tr.mode = mode; if (mode === "gps") tr.fixAt = Date.now();
-  saveTrip(tr); renderLive();
-}
-function gpsFix(silent) {
-  const tr = loadTrip(); if (!tr || !("geolocation" in navigator)) return;
-  if (!silent) { const m = $("#liveMsg"); if (m) m.textContent = "定位中…"; }
+  const sig = $("#selFrom").value + ">" + $("#selTo").value;
+  const show = (msg, warn) => { here = { sig, msg, warn, leg: -1, name: "" }; renderRoute(); };
+  if (!("geolocation" in navigator)) { show("這支手機的瀏覽器不支援定位。", true); return; }
+  const btn = $("#whereNow"); if (btn) { btn.disabled = true; btn.textContent = "定位中…"; }
   navigator.geolocation.getCurrentPosition(p => {
-    const pos = [p.coords.latitude, p.coords.longitude], acc = p.coords.accuracy || 9999;
-    let best = -1, bd = Infinity;
-    tr.pts.forEach((pt, k) => { const c = COORD[`${pt.lid}:${pt.n}`]; if (!c) return; const d = distM(pos, c); if (d < bd) { bd = d; best = k; } });
-    if (best >= 0 && bd <= 700 && acc <= 500) { calibrateTo(best, "gps"); }
-    else if (!silent) { const m = $("#liveMsg"); if (m) m.textContent = acc > 500 ? "定位不夠準（在地下常這樣），先用上車時間推算。" : "你的位置不在這趟路線的車站附近，先用上車時間推算。"; }
-  }, () => { if (!silent) { const m = $("#liveMsg"); if (m) m.textContent = "抓不到位置（在地下常這樣），先用上車時間推算。"; } },
-  { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 });
-}
-function initLive() {
-  $("#result").addEventListener("click", e => { if (e.target.closest("#tripStart")) startTrip(); });
-  $("#live").addEventListener("click", e => {
-    if (e.target.closest("#liveEnd")) endTrip();
-    if (e.target.closest("#liveGps")) gpsFix(false);
-  });
-  $("#live").addEventListener("change", e => { if (e.target.id === "liveSet" && e.target.value !== "") calibrateTo(+e.target.value, "manual"); });
-  const refresh = () => { if (document.visibilityState === "visible") { renderLive(); if (loadTrip()) gpsFix(true); } };
-  document.addEventListener("visibilitychange", refresh);
-  window.addEventListener("pageshow", refresh);
-  renderLive(); if (loadTrip()) gpsFix(true);
-  clearInterval(liveTimer); liveTimer = setInterval(() => { if (document.visibilityState === "visible" && loadTrip()) renderLive(); }, 20000);
+    const pos = [p.coords.latitude, p.coords.longitude], acc = Math.round(p.coords.accuracy || 9999);
+    let best = null, leg = -1;
+    for (const s of lastSteps) {
+      if (s.kind !== "ride") continue; leg++;
+      const L = NET[NODES[s.from].li];
+      const names = (!L.metro && fullStops(L, NODES[s.from].name, NODES[s.to].name)) || s.path.map(id => NODES[id].name);
+      names.forEach((n, k) => {
+        const c = COORD[`${L.id}:${n}`]; if (!c) return;
+        const d = distM(pos, c);
+        if (!best || d < best.d) best = { d, leg, k, n, s, L, total: names.length };
+      });
+    }
+    if (!best || acc > 600 || best.d > 1200) {
+      show(acc > 600 ? `定位不夠準（誤差約 ${acc} 公尺，在地下常這樣），請到地面或稍後再按一次。` : "你現在不在這條路線的車站附近，請確認選的路線是否正確。", true);
+      return;
+    }
+    const left = best.total - 1 - best.k, endName = NODES[best.s.to].name, unit = "站";
+    const rides = lastSteps.filter(x => x.kind === "ride").length;
+    let msg = `📍 目前在「<b>${esc(best.n)}</b>」附近（約 ${Math.round(best.d / 10) * 10} 公尺）`;
+    msg += left === 0 ? `<br>這裡就是「${esc(endName)}」，要下車了。` : `<br>到「${esc(endName)}」還有 <b>${left}</b> ${unit}${best.L.metro ? "" : "（含快車不停的站）"}。`;
+    if (!best.L.metro) msg += `<br>位置標在下面的「完整經過站」。`;
+    if (best.leg < rides - 1) msg += `<br>下車後還要轉乘，繼續看下面的路線。`;
+    here = { sig, msg, warn: false, leg: best.leg, name: best.n, scroll: true };
+    renderRoute();
+  }, err => {
+    show(err.code === 1 ? "沒有取得定位權限。iPhone 請到「設定 → 隱私權與安全性 → 定位服務 → Safari 網站」改成「使用 App 期間」。" : "抓不到位置（在地下常收不到 GPS），請稍後再試。", true);
+  }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 15000 });
 }
 
 (function start() {
@@ -1118,8 +1114,9 @@ function initLive() {
   const key = String(now.getMonth() + 1) + String(now.getDate()).padStart(2, "0");
   const today = DAYS.find(d => d.id === key);
   initLine(); initAsk(); initStatic();
+  $("#result").addEventListener("click", e => { if (e.target.closest("#whereNow")) whereNow(); });
   pickDay(today ? today.id : (store.get("metro-day") || DAYS[0].id));
-  show(); initLive();
+  show();
 })();
 </script>
 <script>
