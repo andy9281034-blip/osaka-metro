@@ -199,6 +199,24 @@ h2 { font-family: var(--display); font-size: 17px; margin: 18px 0 10px; text-wra
 .near-l { display: flex; gap: 3px; flex-wrap: wrap; justify-content: flex-end; }
 .near-d { grid-column: 1 / -1; font-size: 12.5px; color: var(--muted); }
 
+
+.advice { background: var(--surface); border: 1.5px solid var(--c, var(--rule)); border-radius: 10px; padding: 7px 10px; font-weight: 700; font-size: 14.5px; display: grid; gap: 2px; }
+.advice span { font-weight: 400; font-size: 12.5px; color: var(--muted); }
+.advice.warn { border-color: var(--accent); color: var(--accent); }
+.chgtag { font-size: 11px; font-weight: 700; color: #fff; background: #2b7de9; border-radius: 999px; padding: 1px 7px; font-family: var(--body); }
+.skiptag { font-size: 11px; font-weight: 700; color: var(--accent); border: 1px solid var(--accent); border-radius: 999px; padding: 0 6px; font-family: var(--body); }
+
+
+.allst { border-top: 1px dashed var(--rule); padding-top: 6px; }
+.allst summary { cursor: pointer; font-weight: 700; font-size: 13.5px; color: var(--c, var(--accent)); list-style: none; padding: 4px 0; }
+.allst summary::-webkit-details-marker { display: none; }
+.allst summary::before { content: "▸ "; }
+.allst[open] summary::before { content: "▾ "; }
+.path.full li { font-size: 13.5px; padding-top: 2px; padding-bottom: 2px; }
+.path.full li.major { font-weight: 700; }
+.path.full li.minor { color: var(--muted); }
+.path.full li.minor::before { width: 9px; height: 9px; left: 5px; border-width: 2px; }
+
 /* tab bar */
 nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; background: var(--surface); border-top: 1px solid var(--rule); display: flex; justify-content: center; padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); z-index: 5; }
 nav.tabs .inner { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; width: 100%; max-width: 560px; }
@@ -340,37 +358,37 @@ const NET = [
     km: [0,0.6,1.3,2.0,2.5,4.0,4.8,5.4,6.7,7.9],
     dirs: ["コスモスクエア 方面", "住之江公園 方面"] },
 
-  { id: "JRO", name: "JR 大阪環状線", short: "JR", c: "#e8423c", loop: true,
+  { id: "JRO", train: "普通", tip: "搭「普通」最保險；大和路快速、關空快速等快速車會跳過部分站。", name: "JR 大阪環状線", short: "JR", c: "#e8423c", loop: true,
     st: ["大阪","福島","野田","西九条","弁天町","大正","芦原橋","今宮","新今宮","天王寺","寺田町","桃谷","鶴橋","玉造","森ノ宮","大阪城公園","京橋","桜ノ宮","天満"],
     t: [2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2,2,2,3] },
-  { id: "JRP", name: "JR ゆめ咲線", short: "JR", c: "#0a6ab6",
+  { id: "JRP", train: "普通", tip: "每班車每站都停。", name: "JR ゆめ咲線", short: "JR", c: "#0a6ab6",
     st: ["西九条","安治川口","ユニバーサルシティ","桜島"], t: [3,2,2],
     dirs: ["西九条 方面", "桜島 行"] },
-  { id: "JRA", name: "JR 京都線・神戸線（新快速）", short: "JR", c: "#0a6ab6",
+  { id: "JRA", all: ["京都", "西大路", "桂川", "向日町", "長岡京", "山崎", "島本", "高槻", "摂津富田", "JR総持寺", "茨木", "千里丘", "岸辺", "吹田", "東淀川", "新大阪", "大阪", "塚本", "尼崎", "立花", "甲子園口", "西宮", "さくら夙川", "芦屋", "甲南山手", "摂津本山", "住吉", "六甲道", "灘", "三ノ宮", "元町", "神戸"], train: "新快速", tip: "「快速」也可以，會多停幾站。", skip: ["元町"], local: "普通", direct: "快速", name: "JR 京都線・神戸線（新快速）", short: "JR", c: "#0a6ab6",
     st: ["京都","高槻","新大阪","大阪","尼崎","芦屋","三ノ宮","元町","神戸"], t: [14,11,4,6,8,7,2,2],
     dirs: ["新大阪・京都 方面", "三ノ宮・神戸 方面"], note: "只列新快速停靠站。" },
-  { id: "JRR", name: "JR 阪和線・關西空港線（關空快速）", short: "JR", c: "#0a6ab6",
+  { id: "JRR", all: ["天王寺", "美章園", "南田辺", "鶴ケ丘", "長居", "我孫子町", "杉本町", "浅香", "堺市", "三国ケ丘", "百舌鳥", "上野芝", "津久野", "鳳", "富木", "北信太", "信太山", "和泉府中", "久米田", "下松", "東岸和田", "東貝塚", "和泉橋本", "東佐野", "熊取", "日根野", "りんくうタウン", "関西空港"], train: "關空快速", tip: "往機場要看「関西空港」行。", name: "JR 阪和線・關西空港線（關空快速）", short: "JR", c: "#0a6ab6",
     st: ["天王寺","日根野","りんくうタウン","関西空港"], t: [38,5,5],
     dirs: ["天王寺 方面", "関西空港 行"], note: "只列主要站。" },
-  { id: "NK", name: "南海本線・空港線", short: "南海", c: "#e8721c",
+  { id: "NK", all: ["なんば", "新今宮", "天下茶屋", "岸里玉出", "粉浜", "住吉大社", "住ノ江", "七道", "堺", "湊", "石津川", "諏訪ノ森", "浜寺公園", "羽衣", "高石", "北助松", "松ノ浜", "泉大津", "忠岡", "春木", "和泉大宮", "岸和田", "蛸地蔵", "貝塚", "二色浜", "鶴原", "井原里", "泉佐野", "りんくうタウン", "関西空港"], train: "空港急行", tip: "也可以搭特急「Rapi:t」，要另外買特急券。", name: "南海本線・空港線", short: "南海", c: "#e8721c",
     st: ["なんば","新今宮","天下茶屋","堺","岸和田","泉佐野","りんくうタウン","関西空港"], t: [3,3,8,13,9,3,7],
     dirs: ["なんば 方面", "関西空港 行"], note: "只列空港急行主要停靠站；往機場要看「関西空港行」。" },
-  { id: "HKK", name: "阪急京都線", short: "阪急", c: "#7a1f2b",
+  { id: "HKK", all: ["大阪梅田", "十三", "南方", "崇禅寺", "淡路", "上新庄", "相川", "正雀", "摂津市", "南茨木", "茨木市", "総持寺", "富田", "高槻市", "上牧", "水無瀬", "大山崎", "西山天王山", "長岡天神", "西向日", "東向日", "洛西口", "桂", "西京極", "西院", "大宮", "烏丸", "京都河原町"], train: "特急", tip: "準特急、通勤特急也會停這些站。", name: "阪急京都線", short: "阪急", c: "#7a1f2b",
     st: ["大阪梅田","十三","淡路","茨木市","高槻市","長岡天神","桂","西院","烏丸","京都河原町"], t: [4,5,8,6,9,5,5,3,2],
     dirs: ["大阪梅田 方面", "京都河原町 方面"], note: "只列特急停靠站。" },
-  { id: "HKA", name: "阪急嵐山線", short: "阪急", c: "#7a1f2b",
+  { id: "HKA", train: "普通", tip: "嵐山線每班車每站都停。", name: "阪急嵐山線", short: "阪急", c: "#7a1f2b",
     st: ["桂","上桂","松尾大社","嵐山"], t: [3,2,3],
     dirs: ["桂 方面", "嵐山 方面"], note: "在阪急京都線「桂」站轉乘。" },
-  { id: "HKB", name: "阪急神戸線", short: "阪急", c: "#7a1f2b",
+  { id: "HKB", all: ["大阪梅田", "中津", "十三", "神崎川", "園田", "塚口", "武庫之荘", "西宮北口", "夙川", "芦屋川", "岡本", "御影", "六甲", "王子公園", "春日野道", "神戸三宮"], train: "特急", tip: "", name: "阪急神戸線", short: "阪急", c: "#7a1f2b",
     st: ["大阪梅田","十三","西宮北口","夙川","岡本","神戸三宮"], t: [4,11,3,5,8],
     dirs: ["大阪梅田 方面", "神戸三宮 方面"], note: "只列特急停靠站。" },
-  { id: "HSM", name: "阪神本線", short: "阪神", c: "#0b4fa0",
+  { id: "HSM", all: ["大阪梅田", "福島", "野田", "淀川", "姫島", "千船", "杭瀬", "大物", "尼崎", "出屋敷", "尼崎センタープール前", "武庫川", "鳴尾・武庫川女子大前", "甲子園", "久寿川", "今津", "西宮", "香櫨園", "打出", "芦屋", "深江", "青木", "魚崎", "住吉", "御影", "石屋川", "新在家", "大石", "西灘", "岩屋", "春日野道", "神戸三宮", "元町"], train: "直通特急", tip: "「特急」也可以。", name: "阪神本線", short: "阪神", c: "#0b4fa0",
     st: ["大阪梅田","尼崎","甲子園","西宮","芦屋","御影","神戸三宮","元町"], t: [7,5,3,4,4,7,2],
     dirs: ["大阪梅田 方面", "神戸三宮 方面"], note: "只列直通特急停靠站。" },
-  { id: "HSN", name: "阪神なんば線・近鉄奈良線", short: "阪神", c: "#0b4fa0",
+  { id: "HSN", all: ["尼崎", "大物", "出来島", "福", "伝法", "千鳥橋", "西九条", "九条", "ドーム前", "桜川", "大阪難波", "近鉄日本橋", "大阪上本町", "鶴橋", "今里", "布施", "河内永和", "河内小阪", "八戸ノ里", "若江岩田", "河内花園", "東花園", "瓢箪山", "枚岡", "額田", "石切", "生駒", "東生駒", "富雄", "学園前", "菖蒲池", "大和西大寺", "新大宮", "近鉄奈良"], train: "快速急行", tip: "往奈良方向看「近鉄奈良」行；往神戶方向看「神戸三宮」行。", name: "阪神なんば線・近鉄奈良線", short: "阪神", c: "#0b4fa0",
     st: ["尼崎","西九条","ドーム前","桜川","大阪難波","近鉄日本橋","大阪上本町","鶴橋","生駒","大和西大寺","近鉄奈良"], t: [9,3,2,2,2,3,2,13,10,5],
     dirs: ["尼崎・神戸三宮 方面", "近鉄奈良 方面"], note: "阪神與近鐵直通運轉，只列主要站。" },
-  { id: "KH", name: "京阪本線", short: "京阪", c: "#0e8a5f",
+  { id: "KH", all: ["淀屋橋", "北浜", "天満橋", "京橋", "野江", "関目", "森小路", "千林", "滝井", "土居", "守口市", "西三荘", "門真市", "古川橋", "大和田", "萱島", "寝屋川市", "香里園", "光善寺", "枚方公園", "枚方市", "御殿山", "牧野", "樟葉", "橋本", "石清水八幡宮", "淀", "中書島", "伏見桃山", "丹波橋", "墨染", "藤森", "深草", "伏見稲荷", "鳥羽街道", "東福寺", "七条", "清水五条", "祇園四条", "三条", "神宮丸太町", "出町柳"], train: "特急", tip: "", skip: ["伏見稲荷","東福寺","清水五条"], local: "普通", direct: "準急", name: "京阪本線", short: "京阪", c: "#0e8a5f",
     st: ["淀屋橋","北浜","天満橋","京橋","枚方市","樟葉","中書島","丹波橋","伏見稲荷","東福寺","七条","清水五条","祇園四条","三条","出町柳"], t: [1,2,3,13,5,9,3,6,2,2,2,2,2,4],
     dirs: ["淀屋橋 方面", "出町柳 方面"], note: "只列主要站。" }
 ];
@@ -539,8 +557,32 @@ function dirText(step) {
   const up = B.si < A.si;
   let sign = L.dirs[up ? 0 : 1], warn = "";
   if (L.id === "M" && up && NODES[step.to].si < 2) { sign = "箕面萱野 行"; warn = "要搭「箕面萱野行」；搭到「千里中央行」就在千里中央同月台換車。"; }
-  if (L.id === "KH" && ["伏見稲荷", "東福寺", "清水五条"].some(x => x === NODES[step.to].name || x === A.name)) warn = "特急不停這站：搭準急或普通，或坐特急到丹波橋再換普通車。";
   return { sign, warn };
+}
+function fullStops(L, fromName, toName) {
+  const all = L.all; if (!all) return null;
+  const a = all.indexOf(fromName), b = all.indexOf(toName);
+  if (a < 0 || b < 0) return null;
+  const seg = a <= b ? all.slice(a, b + 1) : all.slice(b, a + 1).reverse();
+  return seg;
+}
+function trainAdvice(L, names) {
+  if (L.metro || !L.train) return null;
+  const sk = L.skip || [], from = names[0], to = names[names.length - 1];
+  const fs = sk.includes(from), ts = sk.includes(to);
+  if (!fs && !ts) return { main: `搭「${L.train}」${L.train === "普通" ? "" : "（停車站少、比較快）"}`, sub: L.tip };
+  const mid = names.slice(1, -1);
+  if (fs && ts) return { warn: true, main: `${L.train}不停「${from}」和「${to}」：搭「${L.direct}」或「${L.local}」。` };
+  if (ts) {
+    const chg = [...mid].reverse().find(n => !sk.includes(n));
+    return chg
+      ? { warn: true, chg, chgText: `在這站換「${L.local}」`, main: `${L.train}不停「${to}」：可以搭「${L.direct}」直達；或先搭「${L.train}」到「${chg}」，再換「${L.local}」。` }
+      : { warn: true, main: `${L.train}不停「${to}」：搭「${L.direct}」或「${L.local}」。` };
+  }
+  const chg = mid.find(n => !sk.includes(n));
+  return chg
+    ? { warn: true, chg, chgText: `在這站換「${L.train}」`, main: `${L.train}不停「${from}」：可以搭「${L.direct}」直達；或先搭「${L.local}」到「${chg}」，再換「${L.train}」。` }
+    : { warn: true, main: `${L.train}不停「${from}」：搭「${L.direct}」或「${L.local}」。` };
 }
 function lineBadge(L, small) {
   if (L.metro) return `<span class="roundel${small ? " sm" : ""}" style="--c:${L.c}"><b>${L.short}</b><span>線</span></span>`;
@@ -619,18 +661,35 @@ function renderRoute() {
       continue;
     }
     const L = NET[NODES[s.from].li], d = dirText(s);
+    const adv = trainAdvice(L, s.path.map(id => NODES[id].name));
     const lis = s.path.map((id, i) => {
       const nd = NODES[id], end = i === 0 || i === s.path.length - 1;
       const no = stationNo(L, nd.si);
-      return `<li class="${end ? "end" : ""}">${esc(nd.name)}${no ? `<span class="no">${no}</span>` : ""}${nd.g === HOME_GROUP ? `<span class="pin">飯店</span>` : ""}</li>`;
+      const skipTag = (L.skip || []).includes(nd.name) ? `<span class="skiptag">${esc(L.train)}不停</span>` : "";
+      const chgTag = adv && adv.chg === nd.name && !end ? `<span class="chgtag">${esc(adv.chgText)}</span>` : "";
+      return `<li class="${end ? "end" : ""}">${esc(nd.name)}${no ? `<span class="no">${no}</span>` : ""}${skipTag}${chgTag}${nd.g === HOME_GROUP ? `<span class="pin">飯店</span>` : ""}</li>`;
     }).join("");
     parts.push(`<div class="rstep" style="--c:${L.c}">
       <div class="leg-top">${lineBadge(L)}<div><div class="lname">${L.name}</div><div class="route">${esc(NODES[s.from].name)}<span class="arr">→</span>${esc(NODES[s.to].name)}</div></div></div>
       <div class="signbox">找：${esc(d.sign)}</div>
-      <div class="meta"><span class="chip">${s.n} 站</span><span class="chip">約 ${Math.max(1, Math.round(s.min))} 分</span></div>
+      ${adv ? `<div class="advice${adv.warn ? " warn" : ""}">🚆 ${esc(adv.main)}${adv.sub ? `<span>${esc(adv.sub)}</span>` : ""}</div>` : ""}
+      <div class="meta"><span class="chip">${L.metro ? `${s.n} 站` : `經過 ${s.n} 個主要站`}</span><span class="chip">約 ${Math.max(1, Math.round(s.min))} 分</span></div>
       ${d.warn ? `<div class="note warn">${esc(d.warn)}</div>` : ""}
-      ${L.note ? `<div class="note">${esc(L.note)}</div>` : ""}
+      ${L.metro ? "" : `<div class="note">只列主要站，實際停靠的站會更多；車程以${esc(L.train || "快車")}估算。</div>`}
       <ol class="path">${lis}</ol>
+      ${(() => {
+        const seg = fullStops(L, NODES[s.from].name, NODES[s.to].name);
+        if (!seg || seg.length <= s.path.length) return "";
+        const mainSet = new Set(L.st), sk = L.skip || [];
+        const items = seg.map((n, i) => {
+          const end = i === 0 || i === seg.length - 1;
+          const tags = (sk.includes(n) ? `<span class="skiptag">${esc(L.train)}不停</span>` : "") + (adv && adv.chg === n && !end ? `<span class="chgtag">${esc(adv.chgText)}</span>` : "");
+          return `<li class="${end ? "end" : mainSet.has(n) ? "major" : "minor"}">${esc(n)}${tags}</li>`;
+        }).join("");
+        return `<details class="allst"><summary>顯示完整經過站（共 ${seg.length - 1} 站）</summary>
+          <div class="note">粗體是 App 列出的主要站；細字是只有慢車（普通、準急等）才會停的站。</div>
+          <ol class="path full">${items}</ol></details>`;
+      })()}
     </div>`);
   }
   if (ARRIVE[nkey(last)]) parts.push(`<div class="tipbox">到站：${esc(ARRIVE[nkey(last)])}</div>`);
