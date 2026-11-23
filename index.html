@@ -61,13 +61,23 @@ h2 { font-family: var(--display); font-size: 17px; margin: 18px 0 10px; text-wra
 .lead { color: var(--muted); font-size: 13.5px; margin: 0 0 12px; }
 
 /* day chips */
-.days { display: flex; gap: 8px; overflow-x: auto; padding: 4px 0 10px; scrollbar-width: none; }
+.days { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; padding: 4px 0 10px; }
 .days::-webkit-scrollbar { display: none; }
-.day { flex: 0 0 auto; border: 1.5px solid var(--rule); background: var(--surface); color: var(--ink); border-radius: 12px; padding: 7px 12px; font: inherit; font-size: 13px; text-align: left; cursor: pointer; }
-.day b { display: block; font-family: var(--num); font-size: 18px; line-height: 1.1; }
+.day { min-width: 0; border: 1.5px solid var(--rule); background: var(--surface); color: var(--ink); border-radius: 12px; padding: 7px 4px; font: inherit; font-size: 11.5px; text-align: center; cursor: pointer; }
+.day .dw { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--muted); }
+.day[aria-pressed="true"] .dw { color: var(--ink); }
+.day b { display: block; font-family: var(--num); font-size: 16px; line-height: 1.2; }
 .day[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
 .day:focus-visible, .tab:focus-visible, .st:focus-visible, select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-.dayhead { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin: 6px 0 10px; }
+.dayhead { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 6px 0 10px; }
+.dayhead .go { display: block; margin-top: 2px; }
+.editbtn { font: inherit; font-size: 13px; font-weight: 700; padding: 7px 12px; border-radius: 999px; border: 1.5px solid var(--accent); background: var(--surface); color: var(--accent); white-space: nowrap; cursor: pointer; }
+.editbtn[aria-pressed="true"] { background: var(--accent); color: #fff; }
+body:not(.editing) .tctl, body:not(.editing) .edited, body:not(.editing) .spbar { display: none; }
+body:not(.editing) .spot.sp { cursor: default; }
+body.editing .spot.sp { box-shadow: inset 0 0 0 1px var(--accent); }
+.edit-hint { font-size: 12.5px; color: var(--accent); background: var(--accent-soft); border-radius: 10px; padding: 6px 10px; }
+body:not(.editing) .edit-hint { display: none; }
 .dayhead h2 { margin: 0; }
 .dayhead .go { font-size: 13px; color: var(--muted); white-space: nowrap; }
 
@@ -91,6 +101,10 @@ h2 { font-family: var(--display); font-size: 17px; margin: 18px 0 10px; text-wra
 .picker label { font-size: 12px; color: var(--muted); }
 .picker select { width: 100%; font: inherit; font-size: 15px; padding: 8px 10px; border-radius: 10px; border: 1.5px solid var(--rule); background: var(--paper); color: var(--ink); }
 .result { display: grid; gap: 6px; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 8px; }
+.stats > div { background: var(--surface); border-radius: 12px; padding: 8px 6px; text-align: center; }
+.stats .n { display: block; font-family: var(--num); font-weight: 700; font-size: 24px; color: var(--accent); line-height: 1.1; }
+.stats small { font-size: 12px; color: var(--muted); }
 .result .big { font-family: var(--display); font-size: 18px; font-weight: 700; }
 .result .big .n { font-family: var(--num); font-size: 26px; color: var(--accent); margin: 0 2px; }
 .line { position: relative; margin: 14px 0 0; padding-left: 4px; }
@@ -143,7 +157,10 @@ h2 { font-family: var(--display); font-size: 17px; margin: 18px 0 10px; text-wra
 .lchip:focus-visible, .seg:focus-visible, .swap:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
 
-.tripc { width: 100%; display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; text-align: left; font: inherit; color: var(--ink); background: var(--surface); border: 0; border-left: 6px solid var(--accent); border-radius: 14px; padding: 12px 14px; cursor: pointer; }
+.tripc { width: 100%; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: center; text-align: left; font: inherit; color: var(--ink); background: var(--surface); border: 0; border-left: 6px solid var(--accent); border-radius: 14px; padding: 12px 14px; cursor: pointer; }
+.tripc .tnum { align-self: start; padding-top: 2px; }
+.tfoot { display: flex; align-items: center; gap: 8px; margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--rule); }
+.tfoot .tgo { margin-left: auto; background: var(--accent-soft) !important; border-radius: 999px !important; padding: 5px 12px !important; }
 .tripc .tnum { font-family: var(--num); font-weight: 700; font-size: 20px; color: var(--accent); }
 .tripc .tbody { display: grid; gap: 3px; }
 .tripc .tgo { font-size: 13px; font-weight: 700; color: var(--accent); white-space: nowrap; }
@@ -153,6 +170,69 @@ h2 { font-family: var(--display); font-size: 17px; margin: 18px 0 10px; text-wra
 .xhead { font-weight: 700; }
 .xroute { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .xtip { color: var(--muted); }
+.plan-card { background: var(--surface); border-radius: 14px; padding: 12px 14px; display: grid; gap: 8px; margin: 10px 0; }
+.pc-head { font-family: var(--display); font-weight: 700; font-size: 15px; }
+.homec { padding: 10px 14px; }
+.homec > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+.homec > summary::-webkit-details-marker { display: none; }
+.homec .chg { margin-left: auto; font-size: 13px; color: var(--accent); }
+.homec[open] .chg { visibility: hidden; }
+.pc-row { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px; align-items: center; }
+.pc-row select, .pc-row input { width: 100%; min-width: 0; font-size: 16px; padding: 9px 10px; border-radius: 10px; border: 1px solid var(--line, #ccc); background: var(--bg, #fff); color: inherit; }
+.pc-btn { font: inherit; font-size: 14px; font-weight: 700; padding: 9px 12px; border-radius: 10px; border: 1.5px solid var(--accent); background: var(--surface); color: var(--accent); white-space: nowrap; cursor: pointer; }
+.pc-btn.main { background: var(--accent); color: #fff; }
+.pc-btn.sm { font-size: 12.5px; padding: 5px 9px; }
+.pc-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.rec { border: 1.5px solid var(--line, #ddd); border-radius: 12px; padding: 10px 12px; display: grid; gap: 6px; }
+.rec.best { border-color: var(--accent); background: var(--accent-soft); }
+.rec .rt { font-weight: 700; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.rec .tagb { font-size: 11.5px; background: var(--accent); color: #fff; border-radius: 999px; padding: 1px 8px; }
+.addi { display: grid; grid-template-columns: minmax(0,1fr) auto auto; gap: 6px; align-items: center; padding: 6px 0; border-top: 1px dashed var(--line, #ddd); font-size: 14px; }
+.addi select { font-size: 14px; padding: 5px; border-radius: 8px; }
+.tripc.added { outline: 2px dashed var(--accent); }
+.spot.new { background: var(--accent); color: #fff; }
+.tripc.walkonly { opacity: .85; }
+.tripc { cursor: default; }
+.tripc .tgo { background: none; border: 0; font: inherit; font-size: 13px; font-weight: 700; color: var(--accent); cursor: pointer; padding: 6px 0; }
+.tripc.ret { border-left-color: var(--muted); }
+.rtag { font-size: 11.5px; font-weight: 700; background: var(--muted); color: #fff; border-radius: 999px; padding: 1px 8px; margin-left: 6px; vertical-align: 2px; }
+.tctl { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; align-items: center; }
+.tctl .ic { font: inherit; font-size: 13px; min-width: 34px; height: 30px; border-radius: 8px; border: 1px solid var(--line, #ccc); background: var(--bg, #fff); color: inherit; cursor: pointer; padding: 0 8px; }
+.tctl .ic:disabled { opacity: .3; }
+.tctl .ic.del { color: var(--accent); border-color: var(--accent); }
+.tctl select { font-size: 13px; height: 30px; border-radius: 8px; border: 1px solid var(--line, #ccc); background: var(--bg, #fff); color: inherit; max-width: 120px; }
+.edited { font-size: 13px; color: var(--muted); text-align: center; }
+.linkb { font: inherit; background: none; border: 0; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; }
+.spot.sp { border: 0; font: inherit; font-size: 12.5px; cursor: pointer; }
+.spot.sp.on { outline: 2px solid var(--accent); }
+.spbar { display: grid; gap: 6px; background: var(--accent-soft); border-radius: 10px; padding: 8px 10px; margin-top: 4px; font-size: 13.5px; }
+.spbtns { display: flex; gap: 6px; flex-wrap: wrap; }
+.spbtns select { font-size: 13px; height: 30px; border-radius: 8px; border: 1px solid var(--line, #ccc); background: var(--bg, #fff); color: inherit; }
+.spbtns .ic { font: inherit; font-size: 13px; height: 30px; border-radius: 8px; border: 1px solid var(--line, #ccc); background: var(--bg, #fff); color: inherit; padding: 0 10px; cursor: pointer; }
+.spbtns .ic.del { color: var(--accent); border-color: var(--accent); }
+.pool { display: grid; gap: 6px; }
+.pooli { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 6px; align-items: center; padding: 6px 0; border-top: 1px dashed var(--line, #ddd); font-size: 14px; }
+.pooli .pb { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.farebox { background: var(--surface); border-radius: 12px; padding: 8px 12px; font-size: 15px; line-height: 1.5; }
+.farebox b { font-family: var(--num); font-size: 20px; color: var(--accent); }
+.farebox span { font-size: 12.5px; color: var(--muted); }
+.dfare { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; background: var(--surface); border-radius: 12px; padding: 8px 12px; margin: 0 0 10px; }
+.dfare b { font-family: var(--num); font-size: 22px; color: var(--accent); }
+.dfare .note { flex-basis: 100%; }
+.dfare .dtrip { margin-left: auto; font-size: 13px; color: var(--muted); }
+.dfare .dtrip b { font-size: 17px; color: var(--ink); }
+.tside { display: grid; justify-items: end; gap: 2px; }
+.lsplit { font-size: 11px; color: var(--muted); }
+.lfare { font-family: var(--num); font-weight: 700; font-size: 14px; color: var(--ink); }
+.askbox { border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); margin: 10px 0; padding: 8px 0; }
+.askbox > summary { cursor: pointer; font-size: 14px; font-weight: 700; color: var(--accent); list-style: none; }
+.askbox > summary::-webkit-details-marker { display: none; }
+.askbox > summary::after { content: " ▾"; }
+.askbox[open] > summary::after { content: " ▴"; }
+.askbox .ask { border: 0; box-shadow: none; padding: 8px 0 0; margin: 0; background: none; }
+.note.foot { margin-top: 12px; font-size: 12px; }
+.toast { background: var(--sign); color: var(--sign-ink); border-radius: 10px; padding: 8px 12px; font-size: 14px; }
+header .home { font: inherit; background: none; border: 0; color: inherit; cursor: pointer; padding: 4px 0; }
 .xplat { margin: 4px 0 2px; font-size: 14px; }
 .xplat b { color: var(--ink, #111); font-size: 16px; }
 .signbox .plat { background: #fff; color: #111; border-radius: 6px; padding: 1px 8px; font-size: 18px; line-height: 1.3; }
@@ -268,20 +348,41 @@ nav.tabs .inner { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px
 <div class="app">
   <header>
     <h1>大阪地鐵隨身指南</h1>
-    <div class="home"><span class="roundel sm"><b>M</b><span>21</span></span>住大國町</div>
+    <button type="button" class="home" id="homeBadge">🏨 <span id="homeName">大国町</span></button>
   </header>
 
   <section data-view="trip" id="v-trip">
+    <details class="plan-card homec" id="homeCard">
+      <summary class="pc-head">🏨 飯店站：<b id="homeName2">大国町</b><span class="chg">更改</span></summary>
+      <div class="pc-row"><select id="homeSel" aria-label="飯店最近的車站"></select><button type="button" class="pc-btn" id="homeLoc">📍 在飯店時定位</button></div>
+      <div class="pc-row"><input id="homeText" list="placeList" placeholder="或輸入飯店附近的地名／站名" autocomplete="off"><button type="button" class="pc-btn" id="homeFind">找站</button></div>
+      <div id="homeOut"></div>
+    </details>
     <div class="days" id="days" role="group" aria-label="選擇日期"></div>
-    <div class="dayhead"><h2 id="dayTitle"></h2><span class="go" id="dayGo"></span></div>
+    <div class="dayhead"><div><h2 id="dayTitle"></h2><span class="go" id="dayGo"></span></div><button type="button" class="editbtn" id="editBtn" aria-pressed="false">✏️ 調整行程</button></div>
+    <div class="edit-hint">調整模式：↑↓ 換順序、「整站移到…」搬到別天；點景點標籤可以單獨移動或刪除。改完按「✓ 完成」。</div>
+    <div class="dayfare" id="dayFare"></div>
     <div class="legs" id="legs"></div>
+    <div class="plan-card" id="addCard">
+      <div class="pc-head">➕ 加一個想去的景點</div>
+      <p class="note">輸入景點名稱，App 會看它離哪一天的行程最近，建議排在哪天並幫你接好路線。想換順序、移到別天或刪除，按上面的「✏️ 調整行程」。</p>
+      <form class="pc-row" id="addForm"><input id="addText" list="placeList" placeholder="例如：大阪城、嵐山、海遊館" autocomplete="off"><button type="submit" class="pc-btn main">幫我排</button></form>
+      <div id="addOut"></div>
+      <div id="addList"></div>
+    </div>
   </section>
 
   <section data-view="line" id="v-line">
     <h2>路線查詢</h2>
-    <p class="lead">輸入你在哪、要去哪，會先幫你找最近的車站；也可以直接在下面選站。</p>
+    <div class="picker" id="picker">
+      <div class="pick-row">
+        <div class="pick-col"><label for="selFrom">從</label><select id="selFrom"></select></div>
+        <button class="swap" id="swap" aria-label="起點終點對調">⇅</button>
+        <div class="pick-col"><label for="selTo">到</label><select id="selTo"></select></div>
+      </div>
+      <details class="askbox" id="askBox">
+        <summary>🔍 不知道站名？輸入地名或用定位找站</summary>
     <form class="ask" id="qForm" autocomplete="off">
-      <div class="ask-title">📍 輸入地點，幫你找車站</div>
       <div class="ask-row">
         <label for="qFrom">我現在在</label>
         <div class="ask-in"><input id="qFrom" list="placeList" placeholder="例如：飯店、道頓堀、大阪城"><button type="button" class="mini loc" id="qLoc">📍 定位</button><button type="button" class="mini" id="qHotel">飯店</button></div>
@@ -294,12 +395,7 @@ nav.tabs .inner { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px
       <button type="submit" class="go-btn" id="qGo">幫我找車站</button>
       <div id="qOut" aria-live="polite"></div>
     </form>
-    <div class="picker" id="picker">
-      <div class="pick-row">
-        <div class="pick-col"><label for="selFrom">從</label><select id="selFrom"></select></div>
-        <button class="swap" id="swap" aria-label="起點終點對調">⇅</button>
-        <div class="pick-col"><label for="selTo">到</label><select id="selTo"></select></div>
-      </div>
+      </details>
       <div class="result" id="result" aria-live="polite"></div>
     </div>
   </section>
@@ -445,7 +541,8 @@ const GROUP = {
   "JRA:尼崎":"JR尼崎","JRA:芦屋":"JR芦屋"
 };
 const WALK = { "梅田":7, "なんば":7, "心斎橋":4, "本町":4, "天王寺":5, "新今宮":5, "大国町":2, "日本橋":3, "上本町":4, "京橋":4, "鶴橋":3, "三宮":5, "四条河原町":5, "新大阪":5, "天満":4, "ドーム前":4, "桜川":4, "淀屋橋":3, "北浜":3, "天満橋":3, "十三":2, "尼崎":2, "桂":2, "西九条":3, "関西空港":3, "りんくうタウン":3 };
-const HOME_GROUP = "大国町";
+const DEFAULT_HOME = "大国町";
+let HOME_GROUP = DEFAULT_HOME;
 
 const VOCAB = [
   ["〇〇 方面","ほうめん","往〇〇方向（看終點方向）"],
@@ -486,24 +583,79 @@ function badge(opKey) {
 
 /* ----- trip view ----- */
 function renderDays(active) {
-  $("#days").innerHTML = DAYS.map(d => `<button class="day" data-day="${d.id}" aria-pressed="${d.id === active}"><b>${d.d}</b>（${d.w}）${esc(d.title)}</button>`).join("");
+  $("#days").innerHTML = DAYS.map(d => `<button class="day" data-day="${d.id}" aria-pressed="${d.id === active}"><b>${d.d}</b><span class="dw">${d.w}・${esc(d.title.split(/[＋・]/)[0])}</span></button>`).join("");
+}
+/* Fare of one leg, counting each "get off midway" stop as a separate ride (you pay again when you re-board). */
+function legFareVia(from, to, vias) {
+  const seq = [from];
+  const vs = (vias || []).map(v => v.g).filter(g => g !== from && g !== to && GROUPS.has(g));
+  const fc = groupCoord(from);
+  vs.sort((a, b) => (fc ? distM(fc, groupCoord(a)) - distM(fc, groupCoord(b)) : 0));
+  for (const g of vs) if (seq[seq.length - 1] !== g) seq.push(g);
+  seq.push(to);
+  let total = 0, any = false;
+  for (let i = 0; i < seq.length - 1; i++) { const f = legFare(seq[i], seq[i + 1]); if (f) { total += f.total; any = true; } }
+  return any ? { total, split: seq.length > 2 } : null;
+}
+function renderDayFare(id, legs, m) {
+  let rail = 0, added = 0;
+  for (const L of legs) { const f = legFareVia(L.from, L.to, L.vias); if (!f) continue; rail += f.total; if ((L.stop && L.stop.added) || f.split) added++; }
+  let trip = 0;
+  for (const d of DAYS) for (const L of dayLegs(getDay(d.id))) { const f = legFareVia(L.from, L.to, L.vias); if (f) trip += f.total; }
+  $("#dayFare").innerHTML = `<div class="dfare"><span>💴 今天電車費約</span><b>${yen(rail)}</b><span class="dtrip">全程 ${DAYS.length} 天合計 <b>${yen(trip)}</b></span><span class="note">地鐵・電鐵・JR，大人一人刷 IC 卡${added ? `；已含你新加的 ${added} 段` : ""}。公車、纜車不算在內。</span></div>`;
 }
 function renderLegs(id) {
-  const day = DAYS.find(d => d.id === id) || DAYS[0];
+  const day = DAYS.find(d => d.id === id) || DAYS[0], m = getDay(id), legs = dayLegs(m), opts = moveOpts(id);
   $("#dayTitle").textContent = `${day.d}（${day.w}）${day.title}`;
   $("#dayGo").textContent = day.go;
-  $("#legs").innerHTML = day.trips.map((t, i) => `<button class="tripc" data-from="${esc(t.from)}" data-to="${esc(t.to)}">
+  const spotHtml = (st, i) => st && st.spots && st.spots.length ? `<span class="spots">${st.spots.map((s, k) => `<button type="button" class="spot sp${st.added || (st.addedTags || []).includes(s) ? " new" : ""}${spotSel && spotSel.i === i && spotSel.k === k ? " on" : ""}" data-sp="${i}:${k}">${esc(s)}</button>`).join("")}</span>` : "";
+  const spotBar = (i) => {
+    if (!spotSel || spotSel.i !== i) return "";
+    const st = m.stops[i], s = st && st.spots[spotSel.k]; if (!s) return "";
+    return `<span class="spbar"><b>「${esc(s)}」</b><span class="spbtns"><select data-spmove="${i}:${spotSel.k}" aria-label="把這個景點移到"><option value="">移到…</option><option value="pool">📌 待定清單</option>${opts}</select><button type="button" class="ic del" data-spdel="${i}:${spotSel.k}">刪除</button><button type="button" class="ic" data-spx="1">取消</button></span></span>`;
+  };
+  renderDayFare(id, legs, m);
+  $("#legs").innerHTML = legs.map((L, i) => {
+    const st = L.stop, walk = L.from === L.to;
+    const note = L.ret ? (HOME_GROUP === DEFAULT_HOME ? m.retNote : "") : (st.note || "");
+    const leave = st && st.leave && rs(st.leave) !== L.to ? `<span class="note">逛完從「${esc(rs(st.leave))}」站離開。</span>` : "";
+    const ctl = L.ret ? "" : `<span class="tctl">
+        <button type="button" class="ic" data-op="up" data-i="${L.i}" aria-label="往前移"${L.i === 0 ? " disabled" : ""}>↑</button>
+        <button type="button" class="ic" data-op="down" data-i="${L.i}" aria-label="往後移"${L.i === m.stops.length - 1 ? " disabled" : ""}>↓</button>
+        <select data-op="move" data-i="${L.i}" aria-label="整站移到別天"><option value="">整站移到…</option><option value="pool">📌 待定清單</option>${opts}</select>
+        <button type="button" class="ic del" data-op="del" data-i="${L.i}" aria-label="刪除">刪除</button>
+      </span>`;
+    return `<div class="tripc${st && st.added ? " added" : ""}${L.ret ? " ret" : ""}">
       <span class="tnum">${i + 1}</span>
-      <span class="tbody"><span class="route">${esc(t.from)}<span class="arr">→</span>${esc(t.to)}</span>${t.spots ? `<span class="spots">${t.spots.map(s => `<span class="spot">${esc(s)}</span>`).join("")}</span>` : ""}${t.note ? `<span class="note">${esc(t.note)}</span>` : ""}</span>
-      <span class="tgo">查路線 ›</span>
-    </button>`).join("");
+      <span class="tbody"><span class="route">${esc(L.from)}<span class="arr">→</span>${esc(L.to)}${L.ret ? `<span class="rtag">回飯店</span>` : ""}</span>${L.ret ? (m.retSpots && m.retSpots.length ? `<span class="spots">${m.retSpots.map(s => `<span class="spot new">${esc(s)}</span>`).join("")}</span>` : "") : spotHtml(st, L.i) + spotBar(L.i)}${note ? `<span class="note">${esc(note)}</span>` : ""}${leave}${walk ? `<span class="note">就在同一站附近，用走的就好。</span>` : ""}${walk ? "" : `<span class="tfoot">${(() => { const f = legFareVia(L.from, L.to, L.vias); return f ? `<span class="lfare">💴 ${yen(f.total)}</span>${f.split ? `<span class="lsplit">含途中下車</span>` : ""}` : ""; })()}<button type="button" class="tgo" data-from="${esc(L.from)}" data-to="${esc(L.to)}">查路線 ›</button></span>`}${ctl}</span>
+    </div>`;
+  }).join("") + (plan.days && plan.days[id] ? `<div class="edited">這天已調整過・<button type="button" class="linkb" id="resetDay">還原這天的原本行程</button></div>` : "");
 }
 function pickDay(id) {
-  renderDays(id); renderLegs(id); store.set("metro-day", id);
+  if (curDay !== id) spotSel = null;
+  curDay = id; renderDays(id); renderLegs(id); renderAdds(); store.set("metro-day", id);
 }
+$("#legs").addEventListener("change", e => {
+  const sm = e.target.closest("select[data-spmove]");
+  if (sm && sm.value) { const [i, k] = sm.dataset.spmove.split(":").map(Number); moveSpot(curDay, i, k, sm.value); return; }
+  const s = e.target.closest("select[data-op=move]"); if (s && s.value) editStop(curDay, "move", +s.dataset.i, s.value);
+});
+$("#editBtn").addEventListener("click", () => {
+  const on = !document.body.classList.contains("editing");
+  document.body.classList.toggle("editing", on); $("#editBtn").setAttribute("aria-pressed", on);
+  $("#editBtn").textContent = on ? "✓ 完成" : "✏️ 調整行程"; spotSel = null; renderLegs(curDay);
+});
 $("#days").addEventListener("click", e => { const b = e.target.closest(".day"); if (b) pickDay(b.dataset.day); });
 $("#legs").addEventListener("click", e => {
-  const b = e.target.closest(".tripc"); if (!b) return;
+  if (e.target.closest("#resetDay")) { delete plan.days[curDay]; savePlan(); pickDay(curDay); return; }
+  const sp = document.body.classList.contains("editing") && e.target.closest("[data-sp]");
+  if (sp) { const [i, k] = sp.dataset.sp.split(":").map(Number); spotSel = spotSel && spotSel.i === i && spotSel.k === k ? null : { i, k }; renderLegs(curDay); return; }
+  if (e.target.closest("[data-spx]")) { spotSel = null; renderLegs(curDay); return; }
+  const sd = e.target.closest("[data-spdel]");
+  if (sd) { const [i, k] = sd.dataset.spdel.split(":").map(Number); moveSpot(curDay, i, k, null); return; }
+  const op = e.target.closest("button[data-op]");
+  if (op) { editStop(curDay, op.dataset.op, +op.dataset.i); return; }
+  const b = e.target.closest(".tgo"); if (!b) return;
   setSel("#selFrom", b.dataset.from); setSel("#selTo", b.dataset.to); renderRoute();
   location.hash = "line"; window.scrollTo(0, 0);
 });
@@ -820,12 +972,15 @@ function renderRoute() {
       })()}
     </div>`);
   }
-  if (ARRIVE[nkey(last)]) parts.push(`<div class="tipbox">到站：${esc(ARRIVE[nkey(last)])}</div>`);
+  if (HOME_GROUP !== DEFAULT_HOME && NODES[last].g === HOME_GROUP && !ARRIVE[nkey(last)]) parts.push(`<div class="tipbox">到站：這是你設定的飯店最近站。</div>`);
+  if (ARRIVE[nkey(last)] && !(NODES[last].g === DEFAULT_HOME && HOME_GROUP !== DEFAULT_HOME)) parts.push(`<div class="tipbox">到站：${esc(ARRIVE[nkey(last)])}</div>`);
   lastSteps = steps;
-  r.innerHTML = `<div class="big">約<span class="n">${total}</span>分・轉乘<span class="n">${xfers}</span>次</div>
-    <div class="note">不含等車時間；票價以刷卡扣款為準。月台號碼偶爾會臨時變更，以月台上的電子看板為準。</div>
+  const fr = fareOf(steps);
+  r.innerHTML = `<div class="stats"><div><span class="n">${total}</span><small>分鐘</small></div><div><span class="n">${xfers}</span><small>次轉乘</small></div>${fr.parts.length ? `<div><span class="n">${yen(fr.total)}</span><small>車資・IC</small></div>` : ""}</div>
+    ${fr.parts.length > 1 ? `<div class="note">💴 ${esc(fareLine(fr))}${fr.parts.some(p => p.disc) ? "（北急＋地鐵轉乘折 ¥40）" : ""}</div>` : ""}
     <button type="button" class="trip-start" id="whereNow">📍 我現在到哪一站？</button>
-    ${here && here.sig === sig && here.msg ? `<div class="where-msg${here.warn ? " warn" : ""}">${here.msg}</div>` : ""}${parts.join("")}`;
+    ${here && here.sig === sig && here.msg ? `<div class="where-msg${here.warn ? " warn" : ""}">${here.msg}</div>` : ""}${parts.join("")}
+    <div class="note foot">時間不含等車；車資是大人一人刷 IC 卡，以實際扣款為準；月台偶爾會臨時變更，以月台上的電子看板為準。</div>`;
   const hl = r.querySelector("li.here");
   if (hl && here && here.scroll) { here.scroll = false; hl.scrollIntoView({ behavior: "smooth", block: "center" }); }
 }
@@ -946,7 +1101,7 @@ const PLACES = [
   { k: ["伏見稻荷","伏見稲荷","千本鳥居"], g: "伏見稲荷", walk: "走約 5 分" },
   { k: ["清水寺","三年坂","二年坂","三年板","二年板","產寧坂"], g: "清水五条", walk: "走上坡約 20–25 分" },
   { k: ["八坂神社","祇園","花見小路"], g: "四条河原町", walk: "從祇園四條站走約 5–10 分" },
-  { k: ["錦市場","四條河原町","河原町","京都高島屋","寶可夢中心京都","京都寶可夢"], g: "四条河原町", walk: "走約 5 分" },
+  { k: ["錦市場","四條河原町","四條逛街","河原町","京都高島屋","寶可夢中心京都","京都寶可夢"], g: "四条河原町", walk: "走約 5 分" },
   { k: ["大丸京都","京都大丸","鰻富士","名代豬排","烏丸"], g: "烏丸", walk: "地下直通" },
   { k: ["京都站","京都車站","京都駅"], g: "京都", walk: "" },
   { k: ["北野異人館","異人館","北野"], g: "三宮", walk: "往北上坡走約 15 分" },
@@ -975,7 +1130,61 @@ const PLACES = [
   { k: ["先斗町","鴨川"], g: "四条河原町", walk: "走約 3–5 分" },
   { k: ["下鴨神社","銀閣寺","哲學之道"], g: "出町柳", walk: "下鴨神社走約 10 分；銀閣寺建議轉公車或計程車" },
   { k: ["春日大社","興福寺"], g: "近鉄奈良", walk: "走約 5–25 分" },
-  { k: ["甲子園"], g: "甲子園", walk: "走約 3 分" }
+  { k: ["甲子園"], g: "甲子園", walk: "走約 3 分" },
+  // ---- 大阪 ----
+  { k: ["空中庭園展望台","梅田藍天大廈空中庭園"], g: "梅田", walk: "走約 10 分" },
+  { k: ["yodobashi","友都八喜","yodobashi梅田","大阪站友都八喜"], g: "梅田", walk: "走約 3 分" },
+  { k: ["阪急百貨店","阪急うめだ本店","阪神百貨店","大丸梅田店","hep","hep five摩天輪","梅田摩天輪"], g: "梅田", walk: "走約 3–5 分" },
+  { k: ["阪急三番街","whity梅田","梅田地下街","diamor"], g: "梅田", walk: "地下街直通" },
+  { k: ["天神橋筋六丁目","大阪生活今昔館","大阪くらしの今昔館"], g: "天神橋筋六丁目", walk: "走約 1 分" },
+  { k: ["造幣局","櫻花通道","大川"], g: "天満橋", walk: "走約 15 分" },
+  { k: ["大阪城水上巴士","水上巴士","大阪城天守閣","西之丸庭園","大阪城公園站"], g: "大阪城公園", walk: "走約 10–20 分" },
+  { k: ["jo-terrace","miraiza","大阪城音樂廳","大阪城ホール"], g: "大阪城公園", walk: "走約 3–10 分" },
+  { k: ["森之宮","cool japan park"], g: "森ノ宮", walk: "走約 5 分" },
+  { k: ["鶴橋韓國街","鶴橋燒肉","鶴橋市場","生野韓國城"], g: "鶴橋", walk: "走約 3–15 分" },
+  { k: ["阿倍野q's mall","qs mall","天王寺mio","大阪市立美術館","慶澤園"], g: "天王寺", walk: "走約 5 分" },
+  { k: ["spa world","世界大溫泉","通天閣下","新世界市場"], g: "新今宮", walk: "走約 5 分" },
+  { k: ["長居公園","大阪長居競技場","yanmar stadium"], g: "長居", walk: "走約 5 分" },
+  { k: ["天保山摩天輪","天保山marketplace","聖瑪麗亞號","聖瑪麗亞","樂高樂園","legoland"], g: "大阪港", walk: "走約 5–10 分" },
+  { k: ["citywalk","環球城市步道","universal citywalk"], g: "ユニバーサルシティ", walk: "出站即到" },
+  { k: ["弁天町","大阪交通科學館"], g: "弁天町", walk: "走約 3 分" },
+  { k: ["本町","船場","靭公園","靱公園"], g: "本町", walk: "走約 5–10 分" },
+  { k: ["北濱","北浜","北浜レトロ","北濱咖啡","五感北濱"], g: "北浜", walk: "走約 3 分" },
+  { k: ["京橋","京阪mall","京橋立吞街"], g: "京橋", walk: "走約 3 分" },
+  { k: ["日本橋","千日前道具屋","おたロード","otaku road","動漫街"], g: "日本橋", walk: "走約 5 分" },
+  { k: ["大阪高島屋","難波丸井","namba丸井","なんばマルイ","難波地下街","namba walk"], g: "なんば", walk: "走約 3 分" },
+  { k: ["法善寺橫丁","法善寺横丁","水掛不動"], g: "なんば", walk: "走約 5 分" },
+  { k: ["一蘭道頓堀","金龍拉麵","章魚燒","蟹道樂","大阪燒"], g: "なんば", walk: "道頓堀一帶，走約 5 分" },
+  { k: ["江坂","東急hands江坂"], g: "江坂", walk: "走約 3 分" },
+  { k: ["枚方t-site","枚方公園","ひらかたパーク","枚方"], g: "枚方市", walk: "走約 3–15 分" },
+  // ---- 京都 ----
+  { k: ["金閣寺","鹿苑寺"], g: "四条河原町", walk: "從四條河原町搭市巴士 12 或 59 號約 40 分" },
+  { k: ["二条城","二條城"], g: "烏丸", walk: "轉京都地下鐵（四条站→烏丸御池換東西線）到「二条城前」站" },
+  { k: ["京都御所","京都御苑","同志社"], g: "出町柳", walk: "走約 15 分" },
+  { k: ["高台寺","寧寧之道","ねねの道","圓德院"], g: "四条河原町", walk: "從祇園四條站走約 15 分" },
+  { k: ["知恩院","圓山公園","円山公園","青蓮院"], g: "四条河原町", walk: "從祇園四條站走約 10–15 分" },
+  { k: ["建仁寺","花見小路","祇園白川","巽橋"], g: "四条河原町", walk: "從祇園四條站走約 5–10 分" },
+  { k: ["南禪寺","南禅寺","蹴上","蹴上傾斜鐵道","水路閣"], g: "三条", walk: "轉地下鐵東西線到蹴上站，或走約 25 分" },
+  { k: ["京都水族館","梅小路","京都鐵道博物館","鐵道博物館"], g: "京都", walk: "走約 15–20 分" },
+  { k: ["東寺","教王護國寺"], g: "京都", walk: "走約 15 分" },
+  { k: ["京都伊勢丹","京都porta","京都拉麵小路","拉麵小路","京都車站大樓"], g: "京都", walk: "車站直通" },
+  { k: ["宇治","平等院","宇治抹茶","中村藤吉","伊藤久右衛門"], g: "中書島", walk: "轉京阪宇治線到宇治站約 15 分" },
+  { k: ["伏見酒藏","月桂冠","月桂冠大倉記念館","黃櫻","十石舟","伏見"], g: "中書島", walk: "走約 5–10 分" },
+  { k: ["貴船","貴船神社","鞍馬","鞍馬寺","叡山電車"], g: "出町柳", walk: "轉叡山電車到貴船口／鞍馬約 30 分" },
+  { k: ["嵐山小火車","嵯峨野小火車","保津川","保津川遊船","野宮神社","常寂光寺"], g: "嵐山", walk: "走約 10–20 分" },
+  { k: ["京都高島屋","藤井大丸","新京極","寺町通"], g: "四条河原町", walk: "走約 3–5 分" },
+  { k: ["一蘭京都","阿闍梨餅","% arabica","arabica東山"], g: "四条河原町", walk: "走約 10 分" },
+  { k: ["清水坂","八坂之塔","八坂塔","法觀寺"], g: "清水五条", walk: "走上坡約 15–20 分" },
+  // ---- 神戶 ----
+  { k: ["有馬溫泉","有馬温泉","金之湯","銀之湯"], g: "三宮", walk: "三宮巴士總站搭往有馬的巴士約 30 分" },
+  { k: ["六甲山","六甲纜車","六甲枝垂","摩耶山","掬星台","神戶夜景"], g: "三宮", walk: "搭巴士或計程車到纜車站，再上山" },
+  { k: ["布引香草園","新神戶纜車","布引瀑布"], g: "三宮", walk: "走約 15 分到新神戶纜車站" },
+  { k: ["神戶牛","神戸牛","神戶牛排","steak aoyama","モーリヤ"], g: "三宮", walk: "三宮一帶，走約 5 分" },
+  { k: ["舊居留地","旧居留地","大丸神戸","大丸神戶","神戶市立博物館"], g: "元町", walk: "走約 5 分" },
+  { k: ["神戶港","神戸港","神戶海洋博物館","bE KOBE","be kobe"], g: "元町", walk: "往南走約 10–15 分" },
+  { k: ["灘五鄉","灘酒藏","白鶴酒造","菊正宗"], g: "御影", walk: "走約 10–15 分" },
+  // ---- 奈良 ----
+  { k: ["奈良町","若草山","猿澤池","猿沢池","中谷堂"], g: "近鉄奈良", walk: "走約 5–20 分" }
 ];
 const TW2JP = { "齋":"斎","國":"国","條":"条","稻":"稲","關":"関","戶":"戸","惠":"恵","濱":"浜","櫻":"桜","廣":"広","邊":"辺","東":"東","園":"園","鐵":"鉄","廳":"庁","變":"変","驛":"駅","觀":"観","澤":"沢","號":"号","邊":"辺","塚":"塚","團":"団","與":"与","豐":"豊","鳥":"鳥","戸":"戸" };
 function norm(s) {
@@ -991,8 +1200,8 @@ function localResolve(text) {
   for (const p of PLACES) for (const k of p.k) {
     const nk = norm(k);
     if (q === nk || q.includes(nk) || (nk.includes(q) && q.length >= 2)) {
-      const score = (q === nk ? 100 : 0) + nk.length;
-      if (!best || score > best.score) best = { score, g: p.g, walk: p.walk, label: text };
+      const score = (q === nk ? 100 : 0) + nk.length, isHotel = p.k[0] === "飯店";
+      if (!best || score > best.score) best = { score, g: isHotel ? HOME_GROUP : p.g, walk: isHotel && HOME_GROUP !== DEFAULT_HOME ? "" : p.walk, label: text };
     }
   }
   // 2) station names
@@ -1036,7 +1245,7 @@ async function runAsk() {
     if (ra.g === rb.g) html += `<div class="note">這兩個地方離同一站最近，用走的就可以。</div>`;
     else html += `<div class="note">從 <b>${esc(groupName(ra.g))}</b> 搭到 <b>${esc(groupName(rb.g))}</b>，詳細搭法在下面。</div>`;
     out.innerHTML = html;
-    if (ra.g !== rb.g) { setSel("#selFrom", ra.g); setSel("#selTo", rb.g); renderRoute(); $("#picker").scrollIntoView({ behavior: "smooth", block: "start" }); }
+    if (ra.g !== rb.g) { setSel("#selFrom", ra.g); setSel("#selTo", rb.g); renderRoute(); $("#result").scrollIntoView({ behavior: "smooth", block: "start" }); }
   } finally { $("#qGo").disabled = false; }
 }
 function initAsk() {
@@ -1109,11 +1318,351 @@ function whereNow() {
   }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 15000 });
 }
 
+
+/* ----- fares (adult IC, yen). Distance-band tables per operator, 2025–26 revisions. ----- */
+const FARE_T = {
+  metro:   [[3,190],[7,240],[13,290],[19,340],[Infinity,390]],
+  kita:    [[2,160],[3.5,190],[5,200],[7,220],[Infinity,240]],
+  nankai:  [[3,180],[7,240],[11,290],[15,370],[19,420],[23,490],[27,540],[31,610],[35,650],[39,690],[44,740],[49,790],[54,850],[59,880],[64,930]],
+  keihan:  [[3,180],[7,240],[12,320],[17,360],[22,400],[28,420],[34,440],[40,460],[46,480],[52,490],[Infinity,500]],
+  hankyu:  [[4,170],[9,200],[14,240],[19,280],[26,290],[33,330],[42,390],[51,410],[60,480],[Infinity,540]],
+  hanshin: [[4,160],[8,200],[13,250],[18,280],[24,300],[30,320],[Infinity,330]],
+  kintetsu:[[3,180],[6,240],[10,320],[15,390],[20,450],[25,530],[30,610],[35,680],[Infinity,740]]
+};
+const FARE_K = { jr: 1.05, nankai: 1.04, keihan: 1.03, hankyu: 1.05, hanshin: 1.01, kintetsu: 1.05 };
+const OP_NAME = { metro: "大阪地鐵", kita: "北大阪急行", jr: "JR", nankai: "南海", keihan: "京阪", hankyu: "阪急", hanshin: "阪神", kintetsu: "近鐵" };
+const JR_SPECIAL = { "三ノ宮|大阪": 420, "京都|大阪": 580 };   // keys sorted; fares set below distance rates on routes that compete with private lines
+function band(t, km) { const k = Math.ceil(km - 1e-9); for (const [m, f] of t) if (k <= m) return f; return t[t.length - 1][1]; }
+function jrFare(km) {
+  const k = Math.max(1, Math.ceil(km - 1e-9));
+  if (k <= 3) return 150; if (k <= 6) return 180; if (k <= 10) return 200; if (k <= 15) return 240;
+  const lo = k <= 50 ? Math.floor((k - 1) / 5) * 5 + 1 : Math.floor((k - 1) / 10) * 10 + 1, mid = k <= 50 ? lo + 2 : lo + 4;
+  const base = Math.ceil(mid * 15.5 / 10) * 10;
+  return Math.round(base * 1.1 / 10) * 10 + 10;
+}
+function edgeOp(L, a, b) {
+  const i = L.st.indexOf(a), j = L.st.indexOf(b);
+  if (L.metro) return L.id === "M" && Math.min(i, j) < 5 ? "kita" : "metro";
+  if (L.id.startsWith("JR")) return "jr";
+  if (L.id === "NK") return "nankai";
+  if (L.id === "KH") return "keihan";
+  if (L.id.startsWith("HK")) return "hankyu";
+  if (L.id === "HSM") return "hanshin";
+  if (L.id === "HSN") { const k = L.st.indexOf("大阪難波"); return Math.max(i, j) > k ? "kintetsu" : "hanshin"; }
+  return "other";
+}
+function geoKm(L, names) {
+  let d = 0;
+  for (let i = 0; i < names.length - 1; i++) { const a = COORD[`${L.id}:${names[i]}`], b = COORD[`${L.id}:${names[i + 1]}`]; if (a && b) d += distM(a, b); }
+  return d / 1000;
+}
+/* Split a route into fare parts: consecutive rides on one operator count as one trip. */
+function fareOf(steps) {
+  const parts = []; let cur = null;
+  const push = (op, km, from, to, extra) => {
+    if (cur && cur.op === op) { cur.km += km; cur.to = to; cur.extra = (cur.extra || 0) + (extra || 0); cur.names.push(to); }
+    else { cur = { op, km, from, to, extra: extra || 0, names: [from, to] }; parts.push(cur); }
+  };
+  for (const s of steps) {
+    if (s.kind !== "ride") continue;
+    const L = NET[NODES[s.from].li], names = s.path.map(id => NODES[id].name);
+    let seg = [names[0]], op = edgeOp(L, names[0], names[1]);
+    for (let i = 1; i < names.length; i++) {
+      seg.push(names[i]);
+      const nextOp = i < names.length - 1 ? edgeOp(L, names[i], names[i + 1]) : null;
+      if (nextOp === op) continue;
+      let km;
+      if (L.km) km = Math.abs(L.km[L.st.indexOf(seg[seg.length - 1])] - L.km[L.st.indexOf(seg[0])]);
+      else { const full = fullStops(L, seg[0], seg[seg.length - 1]) || seg; km = geoKm(L, full) * (FARE_K[op] || 1.05); }
+      let extra = 0;
+      if (op === "hanshin" && L.id === "HSN") extra = 90;
+      if ((op === "nankai" || op === "jr") && seg.includes("関西空港")) extra = 230;
+      if (op === "keihan" && seg.some(n => n === "出町柳" || n === "神宮丸太町")) extra = 60;
+      push(op, km, seg[0], seg[seg.length - 1], extra);
+      seg = [names[i]]; op = nextOp;
+    }
+  }
+  let total = 0;
+  for (const p of parts) {
+    const key = [p.from, p.to].sort().join("|");
+    if (p.op === "jr") p.fare = JR_SPECIAL[key] || jrFare(p.km) + (p.extra || 0);
+    else if (p.op === "hanshin" && p.extra) p.fare = band(FARE_T.hanshin, p.km) + (Math.ceil(p.km) <= 4 ? 60 : 90);
+    else p.fare = band(FARE_T[p.op] || FARE_T.metro, p.km) + (p.extra || 0);
+    if (p.op === "nankai" && /^(りんくうタウン\|関西空港|関西空港\|りんくうタウン)$/.test(key)) p.fare = 370;
+    total += p.fare;
+  }
+  // Metro ↔ Kita-Kyu through ticket: 40 yen off when the Metro part is within 1区
+  const ki = parts.findIndex(p => p.op === "kita");
+  if (ki >= 0) { const m = parts[ki + 1] && parts[ki + 1].op === "metro" ? parts[ki + 1] : parts[ki - 1] && parts[ki - 1].op === "metro" ? parts[ki - 1] : null; if (m && m.fare === 190) { total -= 40; m.disc = 40; } }
+  return { total, parts };
+}
+
+const FC = new Map();
+function legFare(a, b) {
+  if (a === b) return null;
+  const k = a + ">" + b; if (FC.has(k)) return FC.get(k);
+  const st = findRoute(a, b), f = st ? fareOf(st) : null;
+  FC.set(k, f); return f;
+}
+const yen = n => "¥" + n.toLocaleString("en-US");
+function fareLine(f) { return f.parts.map(p => `${OP_NAME[p.op]} ${yen(p.fare - (p.disc || 0))}`).join(" + "); }
+
+/* ----- flexible plan: hotel station + editable stops (saved on this phone) ----- */
+let curDay = null;
+const PLAN_KEY = "metro-plan-v1", HOME = "@home";
+let plan = (() => { try { return JSON.parse(store.get(PLAN_KEY)) || {}; } catch (e) { return {}; } })();
+plan.days = plan.days || {};
+plan.pool = plan.pool || [];
+let spotSel = null, lastFit = null;
+const MEAL = /^(午餐|晚餐|早餐|宵夜)[：:]/;
+/* Station of one spot: only from the curated place list (station-name guesses misfire on names like 京都勝牛). */
+function spotStation(label) {
+  const q = norm(label.replace(MEAL, "").split(/[（(]/)[0]); let best = null;
+  for (const p of PLACES) for (const k of p.k) { const nk = norm(k + "§").slice(0, -1); if (nk.length >= 2 && q.includes(nk) && (!best || nk.length > best.n) && p.k[0] !== "飯店") best = { g: p.g, n: nk.length }; }
+  return best && GROUPS.has(best.g) ? best.g : null;
+}
+function stopLabel(st) { return st.spots[0] || groupName(rs(st.g)); }
+HOME_GROUP = plan.home && GROUPS.has(plan.home) ? plan.home : DEFAULT_HOME;
+function savePlan() { plan.home = HOME_GROUP; store.set(PLAN_KEY, JSON.stringify(plan)); }
+const rs = g => g === HOME ? HOME_GROUP : g;
+function groupCoord(g) {
+  for (const id of GROUPS.get(rs(g)) || []) { const c = COORD[`${NET[NODES[id].li].id}:${NODES[id].name}`]; if (c) return c; }
+  return null;
+}
+function routeMin(a, b) {
+  if (a === b) return 0;
+  const steps = findRoute(a, b); if (!steps) return null;
+  let t = 0;
+  for (const s of steps) {
+    if (s.kind === "ride") { const L = NET[NODES[s.from].li], nm = s.path.map(id => NODES[id].name); t += rideEstimate(L, nm, trainAdvice(L, nm)).min; }
+    else t += s.min;
+  }
+  return Math.round(t);
+}
+const RG = new Map();
+function routeGroups(a, b) {
+  const k = a + ">" + b; if (RG.has(k)) return RG.get(k);
+  const set = new Set(), steps = a === b ? null : findRoute(a, b);
+  if (steps) for (const s of steps) if (s.kind === "ride") {
+    const L = NET[NODES[s.from].li], names = fullStops(L, NODES[s.from].name, NODES[s.to].name) || s.path.map(id => NODES[id].name);
+    for (const n of names) set.add(GROUP[`${L.id}:${n}`] || n);
+  }
+  RG.set(k, set); return set;
+}
+/* A day = start station + ordered stops (arrive at g, leave from `leave`) + whether it ends at the hotel. */
+function baseDay(day) {
+  const T = day.trips, stops = [], H = x => x === DEFAULT_HOME ? HOME : x;
+  T.forEach((t, i) => {
+    const prev = stops[stops.length - 1];
+    if (prev && H(t.from) !== prev.g) prev.leave = H(t.from);
+    if (i === T.length - 1 && t.to === DEFAULT_HOME && i > 0) return;
+    stops.push({ g: H(t.to), spots: t.spots ? [...t.spots] : [], note: t.note || "" });
+  });
+  const last = T[T.length - 1], ret = last.to === DEFAULT_HOME && T.length > 1;
+  return { start: H(T[0].from), stops, ret, retNote: ret ? (last.note || "") : "" };
+}
+function getDay(id) { return plan.days[id] || baseDay(DAYS.find(d => d.id === id)); }
+function editDay(id) { if (!plan.days[id]) plan.days[id] = JSON.parse(JSON.stringify(baseDay(DAYS.find(d => d.id === id)))); return plan.days[id]; }
+function dayLegs(m) {
+  const legs = []; let cur = m.start;
+  m.stops.forEach((st, i) => { legs.push({ from: rs(cur), to: rs(st.g), stop: st, i, vias: st.vias }); cur = st.leave || st.g; });
+  if (m.ret && rs(cur) !== HOME_GROUP) legs.push({ from: rs(cur), to: HOME_GROUP, ret: true, i: m.stops.length, vias: m.retVias });
+  else if (m.retSpots && m.retSpots.length && m.stops.length) { m.stops[m.stops.length - 1].spots.push(...m.retSpots); m.retSpots = []; }
+  return legs;
+}
+/* Best place for station g in a day: on a ride it already takes (get off midway), else right after the closest stop. */
+const WALK_TAG_M = 1200;   // within ~15 min walk of a stop → just a tag there
+function fitStop(m, g) {
+  const legs = dayLegs(m), ac = groupCoord(g);
+  let best = null;
+  m.stops.forEach((st, i) => {
+    for (const s of [st.g, st.leave]) {
+      if (!s || s === HOME || rs(s) === HOME_GROUP || s === "関西空港") continue;
+      const sc = groupCoord(s); if (!sc || !ac) continue;
+      const d = distM(ac, sc); if (!best || d < best.d) best = { idx: i + 1, d, g: s };
+    }
+  });
+  if (best && best.d < WALK_TAG_M) return best;
+  for (const L of legs) {
+    if (L.from === L.to || L.from === g || L.to === g) continue;
+    if (routeGroups(L.from, L.to).has(g)) return { idx: L.i, onroute: true, via: L, d: 0, g: L.ret ? HOME : m.stops[L.i].g };
+  }
+  return best || { idx: m.stops.length, d: Infinity, g: null };
+}
+function insertStop(id, st) {
+  const m = editDay(id), f = fitStop(m, st.g), g = groupName(st.g);
+  if (f.onroute) {                  // passes by on a ride this day already takes → "get off midway" tag
+    const ride = /搭|轉/.test(st.walkInfo || "") ? `，${st.walkInfo}` : "";
+    const tags = st.spots.map(s => `途中下車：${s}（${g}站${ride}）`);
+    const vias = tags.map(label => ({ g: st.g, label }));
+    if (f.via.ret) { m.retSpots = [...(m.retSpots || []), ...tags]; m.retVias = [...(m.retVias || []), ...vias]; }
+    else { const t = m.stops[f.idx]; t.spots.push(...tags); t.addedTags = [...(t.addedTags || []), ...tags]; t.vias = [...(t.vias || []), ...vias]; }
+    f.mode = "tag";
+  } else if (f.d < WALK_TAG_M && f.idx > 0) {
+    const how = /搭|轉/.test(st.walkInfo || "") ? st.walkInfo : f.d < 300 ? "" : `走約 ${Math.max(5, Math.round(f.d / 70 / 5) * 5)} 分`;
+    const t = m.stops[f.idx - 1], tags = st.spots.map(s => how ? `${s}（${how}）` : s);
+    t.spots.push(...tags); t.addedTags = [...(t.addedTags || []), ...tags];
+    f.mode = "tag";
+  } else { m.stops.splice(f.idx, 0, st); f.mode = "leg"; }
+  return f;
+}
+/* Move one spot out of a stop: to another day, to the pool, or delete (target null). */
+function moveSpot(id, i, k, target) {
+  const m = editDay(id), st = m.stops[i]; if (!st) return;
+  const n0 = st.spots.length, [label] = st.spots.splice(k, 1);
+  if (st.vias) st.vias = st.vias.filter(v => v.label !== label);
+  const late = st.leave && st.leave !== HOME && k >= n0 / 2;   // later spots sit nearer where you leave from
+  const g = spotStation(label) || (late ? st.leave : st.g);
+  if (!st.spots.length) m.stops.splice(i, 1);
+  spotSel = null;
+  const one = { g, spots: [label], note: "", added: true };
+  if (target === "pool") { plan.pool.push(one); savePlan(); pickDay(id); toast(`「${esc(label)}」已放進下面的 📌 待定清單，想去時再排進某天。`); return; }
+  if (!target) { savePlan(); pickDay(id); toast(`已刪除「${esc(label)}」。`); return; }
+  insertStop(target, one); savePlan(); pickDay(target);
+  toast(`已把「${esc(label)}」移到 ${esc(DAYS.find(d => d.id === target).d)}（${esc(groupName(g))}站附近），排在最順路的位置。`);
+}
+function moveOpts(id) { return DAYS.filter(d => d.id !== id).map(d => `<option value="${d.id}">${d.d}（${d.w}）</option>`).join(""); }
+function toast(msg) { const o = $("#addOut"); if (o) { o.innerHTML = `<div class="toast">${msg}</div>`; } }
+function editStop(id, op, i, target) {
+  const m = editDay(id);
+  if (op === "up" && i > 0) [m.stops[i - 1], m.stops[i]] = [m.stops[i], m.stops[i - 1]];
+  else if (op === "down" && i < m.stops.length - 1) [m.stops[i + 1], m.stops[i]] = [m.stops[i], m.stops[i + 1]];
+  else if (op === "del") { const [st] = m.stops.splice(i, 1); toast(`已刪除「${esc(stopLabel(st))}」。想找回來可以按下面的「還原這天的原本行程」；下次不確定要不要去，可以改選「移到 → 📌 待定清單」。`); }
+  else if (op === "move" && target === "pool") {
+    const [st] = m.stops.splice(i, 1); plan.pool.push({ ...st, leave: st.leave });
+    toast(`「${esc(stopLabel(st))}」這站已放進 📌 待定清單。`);
+  }
+  else if (op === "move" && target) {
+    const [st] = m.stops.splice(i, 1); insertStop(target, st);
+    const d = DAYS.find(x => x.id === target);
+    savePlan(); pickDay(target);
+    toast(`已把「${esc(st.spots[0] || rs(st.g))}」移到 ${esc(d.d)}，排在最順路的位置，路線已重新接好。`);
+    return;
+  }
+  savePlan(); renderLegs(id);
+}
+const DAY_RULE = {
+  "1124": { pen: 1.5, why: "落地後只有下午和晚上" },
+  "1126": { pen: 12, why: "環球影城玩一整天，很難再排別的", near: 4 },
+  "1128": { block: "早上 10:00 就要出發去機場，排不進去" }
+};
+function recommend(g) {
+  if (!groupCoord(g)) return [];
+  return DAYS.map(day => {
+    const rule = DAY_RULE[day.id] || {};
+    if (rule.block) return { day, blocked: rule.block };
+    const m = getDay(day.id), f = fitStop(m, g);
+    if (!f.g && !f.onroute) return { day, blocked: "這天沒有可接的行程" };
+    const near = { g: f.g, d: f.d, onroute: !!f.onroute, via: f.via };
+    const nSpots = m.stops.reduce((n, s) => n + s.spots.length, 0);
+    let score = near.d / 1000 + nSpots * 0.4;
+    const notes = [];
+    if (rule.pen) { if (!(rule.near && near.d / 1000 < rule.near)) { score += rule.pen; notes.push(rule.why); } else if (rule.near) notes.push("跟環球影城在同一區，可以早上入園前或閉園後順路去"); }
+    if (near.d > 15000) notes.push("離每天的行程都很遠，建議空出半天專程去");
+    if (nSpots >= 8) notes.push(`這天已經排了 ${nSpots} 個點，會比較趕`);
+    return { day, near, score, notes, min: near.onroute ? 0 : routeMin(rs(near.g), g) };
+  }).sort((a, b) => (a.blocked ? 1e9 : a.score) - (b.blocked ? 1e9 : b.score));
+}
+function dayLabel(d) { return `${d.d}（${d.w}）${d.title}`; }
+function renderRec(label, g, walk) {
+  const recs = recommend(g), out = $("#addOut");
+  const ok = recs.filter(r => !r.blocked);
+  if (!ok.length) { out.innerHTML = `<div class="note warn">找不到適合的日子。</div>`; return; }
+  const area = cityHint(groupCoord(g));
+  out.innerHTML = `<div class="note">「${esc(label)}」最近的站：<b>${esc(groupName(g))}</b>（${area}）${walk ? `，${esc(walk)}` : ""}</div>` +
+    ok.slice(0, 3).map((r, i) => `<div class="rec${i === 0 ? " best" : ""}">
+      <div class="rt">${i === 0 ? `<span class="tagb">建議</span>` : ""}${esc(dayLabel(r.day))}</div>
+      <div class="note">${r.near.onroute ? `順路！這天搭「${esc(groupName(r.near.via.from))} → ${esc(groupName(r.near.via.to))}」會經過，<b>以「途中下車」標籤加進那段</b>` : r.near.d < WALK_TAG_M ? `離這天的「${esc(groupName(rs(r.near.g)))}」${/搭|轉/.test(walk || "") ? "很近（但要" + esc(walk.replace(/^從.+?(?=搭|轉)/, "")) + "）" : r.near.d < 300 ? "就在旁邊" : `走路約 ${Math.max(5, Math.round(r.near.d / 70 / 5) * 5)} 分`}，<b>以標籤加進那一站</b>` : `離這天的「${esc(groupName(rs(r.near.g)))}」最近（直線${fmtDist(r.near.d)}）${r.min != null ? `，從那裡搭車約 ${r.min} 分` : ""}，<b>會新增一段路程</b>`}。${r.notes.length ? `<br>⚠️ ${esc(r.notes.join("；"))}` : ""}</div>
+      <div><button type="button" class="pc-btn sm${i === 0 ? " main" : ""}" data-add="${esc(r.day.id)}">排進 ${esc(r.day.d)}</button></div>
+    </div>`).join("") +
+    recs.filter(r => r.blocked).map(r => `<div class="note">${esc(r.day.d)}：${esc(r.blocked)}。</div>`).join("");
+  out.dataset.label = label; out.dataset.g = g; out.dataset.walk = walk || ""; out.dataset.pool = "";
+}
+function renderAdds() {
+  const box = $("#addList"); if (!box) return;
+  const n = Object.keys(plan.days).length;
+  const allOpts = DAYS.filter(d => !(DAY_RULE[d.id] || {}).block).map(d => `<option value="${d.id}">${d.d}（${d.w}）</option>`).join("");
+  const pool = plan.pool.length ? `<div class="pool"><div class="pc-head" style="font-size:14px">📌 待定清單（${plan.pool.length}）</div>` + plan.pool.map((st, i) =>
+    `<div class="pooli"><span>${esc(stopLabel(st))}${st.spots.length > 1 ? ` <span class="note">等 ${st.spots.length} 個點</span>` : ""} <span class="note">・${esc(groupName(rs(st.g)))}站</span></span>
+      <span class="pb"><button type="button" class="pc-btn sm main" data-pooladv="${i}">建議哪天</button><select data-poolto="${i}" aria-label="排進哪天"><option value="">排進…</option>${allOpts}</select><button type="button" class="pc-btn sm" data-pooldel="${i}">刪除</button></span></div>`).join("") + `</div>` : "";
+  box.innerHTML = pool + (n ? `<div><button type="button" class="pc-btn sm" id="addReset">全部還原成原本的行程（已調整 ${n} 天）</button></div>` : "");
+}
+function setHome(g, msg) {
+  if (!GROUPS.has(g)) return;
+  HOME_GROUP = g; savePlan();
+  $("#homeSel").value = g; $("#homeName").textContent = groupName(g); $("#homeName2").textContent = groupName(g);
+  $("#homeOut").innerHTML = msg ? `<div class="note">${msg}</div>` : "";
+  setSel("#selFrom", HOME_GROUP);
+  if (curDay) renderLegs(curDay);
+}
+function initPlan() {
+  if (plan.adds && plan.adds.length) { for (const a of plan.adds) insertStop(a.day, { g: a.g, spots: [a.label], note: a.walk ? `到站後${a.walk}。` : "", added: true }); }
+  delete plan.adds; savePlan();
+  $("#homeSel").innerHTML = $("#selFrom").innerHTML;
+  $("#homeSel").value = HOME_GROUP; $("#homeName").textContent = groupName(HOME_GROUP); $("#homeName2").textContent = groupName(HOME_GROUP);
+  $("#homeSel").addEventListener("change", e => setHome(e.target.value, `已改成 <b>${esc(groupName(e.target.value))}</b>，每日路線裡的「飯店」都會用這站。`));
+  $("#homeBadge").addEventListener("click", () => { location.hash = "trip"; $("#homeCard").open = true; $("#homeCard").scrollIntoView({ behavior: "smooth" }); });
+  $("#homeFind").addEventListener("click", () => {
+    const t = $("#homeText").value; const r = t.trim() && localResolve(t);
+    if (!r) { $("#homeOut").innerHTML = `<div class="note warn">找不到「${esc(t)}」，可以直接從上面的選單選站，或到飯店後按「在飯店時定位」。</div>`; return; }
+    setHome(r.g, `「${esc(t)}」最近的站是 <b>${esc(groupName(r.g))}</b>，已設為飯店站。`);
+  });
+  $("#homeLoc").addEventListener("click", () => {
+    const out = $("#homeOut");
+    if (!("geolocation" in navigator)) { out.innerHTML = `<div class="note warn">這支手機不支援定位。</div>`; return; }
+    out.innerHTML = `<div class="note">定位中…</div>`;
+    navigator.geolocation.getCurrentPosition(p => {
+      const pos = [p.coords.latitude, p.coords.longitude], list = nearestGroups(pos, 3);
+      out.innerHTML = `<div class="note">離你最近的三個站，點一個設為飯店站：</div><div class="pc-chips">` +
+        list.map(x => `<button type="button" class="pc-btn sm" data-home="${esc(x.g)}">${esc(groupName(x.g))}・${fmtDist(x.d)}</button>`).join("") + `</div>`;
+    }, () => { out.innerHTML = `<div class="note warn">抓不到位置，請允許定位或改用選單。</div>`; }, { enableHighAccuracy: true, timeout: 12000 });
+  });
+  $("#homeOut").addEventListener("click", e => { const b = e.target.closest("[data-home]"); if (b) setHome(b.dataset.home, `已設為 <b>${esc(groupName(b.dataset.home))}</b>。`); });
+
+  $("#addForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const t = $("#addText").value.trim(), out = $("#addOut");
+    if (!t) return;
+    const r = localResolve(t);
+    if (!r) {
+      out.innerHTML = `<div class="note warn">清單裡沒有「${esc(t)}」。請直接選它附近的車站：</div><div class="pc-row"><select id="addStation">${$("#selFrom").innerHTML}</select><button type="button" class="pc-btn main" id="addStationGo">用這站</button></div>`;
+      $("#addStation").value = "梅田";
+      $("#addStationGo").addEventListener("click", () => renderRec(t, $("#addStation").value, ""));
+      return;
+    }
+    if (r.g === HOME_GROUP) { out.innerHTML = `<div class="note">「${esc(t)}」就在飯店站附近，任何一天出門前或回飯店後順路去就好。</div>`; return; }
+    renderRec(t, r.g, r.walk);
+  });
+  $("#addOut").addEventListener("click", e => {
+    const b = e.target.closest("[data-add]"); if (!b) return;
+    const o = $("#addOut").dataset, id = b.dataset.add;
+    if (o.pool !== "" && plan.pool[+o.pool]) { lastFit = insertStop(id, plan.pool.splice(+o.pool, 1)[0]); }
+    else lastFit = insertStop(id, { g: o.g, spots: [o.label], note: o.walk ? `到站後${o.walk}。` : "", walkInfo: o.walk, added: true });
+    savePlan();
+    $("#addText").value = "";
+    pickDay(id);
+    toast(lastFit && lastFit.mode === "tag" ? `已把「${esc(o.label)}」以標籤加進 ${esc(DAYS.find(d => d.id === id).d)} 順路的那一站（紅底標籤）。` : `已把「${esc(o.label)}」排進 ${esc(DAYS.find(d => d.id === id).d)}，新增一段路程（虛線框），路線已接好。`);
+    $("#legs").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+  $("#addList").addEventListener("change", e => {
+    const s = e.target.closest("[data-poolto]"); if (!s || !s.value) return;
+    const st = plan.pool.splice(+s.dataset.poolto, 1)[0]; insertStop(s.value, st); savePlan(); pickDay(s.value);
+    toast(`已把「${esc(stopLabel(st))}」排進 ${esc(DAYS.find(d => d.id === s.value).d)}，路線已接好。`);
+  });
+  $("#addList").addEventListener("click", e => {
+    const a = e.target.closest("[data-pooladv]");
+    if (a) { const i = +a.dataset.pooladv, st = plan.pool[i]; renderRec(stopLabel(st), rs(st.g), ""); $("#addOut").dataset.pool = String(i); $("#addOut").scrollIntoView({ behavior: "smooth", block: "center" }); return; }
+    const d = e.target.closest("[data-pooldel]");
+    if (d) { plan.pool.splice(+d.dataset.pooldel, 1); savePlan(); renderAdds(); return; }
+    if (e.target.closest("#addReset")) { plan.days = {}; plan.pool = []; savePlan(); pickDay(curDay); toast("已還原成原本的行程。"); }
+  });
+}
+
 (function start() {
   const now = new Date();
   const key = String(now.getMonth() + 1) + String(now.getDate()).padStart(2, "0");
   const today = DAYS.find(d => d.id === key);
-  initLine(); initAsk(); initStatic();
+  initLine(); initAsk(); initStatic(); initPlan(); setSel("#selFrom", HOME_GROUP);
   $("#result").addEventListener("click", e => { if (e.target.closest("#whereNow")) whereNow(); });
   pickDay(today ? today.id : (store.get("metro-day") || DAYS[0].id));
   show();
