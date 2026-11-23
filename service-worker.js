@@ -1,5 +1,5 @@
 // 大阪地鐵隨身指南：離線快取
-const CACHE = "osaka-metro-v27";
+const CACHE = "osaka-metro-v39";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./apple-touch-icon.png"];
 
 self.addEventListener("install", e => {
@@ -13,10 +13,13 @@ self.addEventListener("fetch", e => {
   if (req.method !== "GET") return;
   // Map tiles always come straight from OpenStreetMap; they are not stored on the phone.
   if (new URL(req.url).hostname.endsWith("tile.openstreetmap.org")) return;
-  // The page itself: try the network first so updates show up, fall back to the saved copy offline.
+  // The page itself: try the network so updates show up, but if the signal is weak (underground)
+  // show the saved copy after 2.5 seconds instead of waiting; the network copy still updates the cache.
   if (req.mode === "navigate") {
-    e.respondWith(fetch(req).then(res => { const copy = res.clone(); caches.open(CACHE).then(c => c.put("./index.html", copy)); return res; })
-      .catch(() => caches.match("./index.html")));
+    const net = fetch(req).then(res => { if (res && res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put("./index.html", copy)); } return res; });
+    const saved = new Promise(ok => setTimeout(() => caches.match("./index.html").then(ok), 2500));
+    e.respondWith(Promise.race([net.catch(() => caches.match("./index.html")), saved.then(hit => hit || net)]));
+    e.waitUntil(net.catch(() => {}));
     return;
   }
   // Everything else (icons, Google Fonts): saved copy first, then network.
